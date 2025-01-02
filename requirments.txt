@@ -1,0 +1,8 @@
+qrcode
+pillow
+pyrealsense2
+numpy
+cv2
+opencv-python
+pyzbar
+pytesseract
