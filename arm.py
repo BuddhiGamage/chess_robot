@@ -1,4 +1,9 @@
 import numpy as np
+from move_to_x_y import move_to_cartesian_position
+import utilities
+from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
+from kortex_api.autogen.messages import Base_pb2
+
 
 # Define the chessboard coordinates (0 to 7 for an 8x8 board)
 chessboard_coords = np.array([
@@ -39,26 +44,26 @@ for x in range(8):
 print("Real-world coordinates of all squares:")
 print(board_coords)
 
-import math
-from kortex_api import RobotServer, Session
-# from kortex_api.exceptions import *
-from kortex_api import types
+# import math
+# from kortex_api import RobotServer, Session
+# # from kortex_api.exceptions import *
+# from kortex_api import types
 
-# Define the fixed Z-coordinate in meters
-Z_FIXED_METERS = 0.15  # Example Z value in meters (e.g., 0.15m)
-Z_FIXED = Z_FIXED_METERS * 1000  # Convert Z to millimeters
+# # Define the fixed Z-coordinate in meters
+# Z_FIXED_METERS = 0.15  # Example Z value in meters (e.g., 0.15m)
+# Z_FIXED = Z_FIXED_METERS * 1000  # Convert Z to millimeters
 
-# Initialize the Kortex API
-def initialize_kinova_arm():
-    try:
-        # Connect to the Kinova robot
-        robot = RobotServer("192.168.1.10")  # Replace with your robot's IP address
-        session = Session()
-        robot.start()
-        return robot, session
-    except Exception as e:
-        print("Error connecting to robot:", e)
-        return None, None
+# # Initialize the Kortex API
+# def initialize_kinova_arm():
+#     try:
+#         # Connect to the Kinova robot
+#         robot = RobotServer("192.168.1.10")  # Replace with your robot's IP address
+#         session = Session()
+#         robot.start()
+#         return robot, session
+#     except Exception as e:
+#         print("Error connecting to robot:", e)
+#         return None, None
 
 # Define a function to convert chessboard notation to grid indices
 def chessboard_to_index(chessboard_pos):
@@ -83,7 +88,7 @@ def chessboard_to_real_world(row, col):
     return real_x, real_y
 
 # Function to move the Kinova arm
-def move_arm_to_chess_pos(robot, session, chessboard_pos):
+def move_arm_to_chess_pos(chessboard_pos):
     """Move the Kinova arm to the given chessboard position (e.g., 'e4')."""
     # Convert chessboard position (e.g., 'e4') to grid index (row, col)
     row, col = chessboard_to_index(chessboard_pos)
@@ -91,21 +96,37 @@ def move_arm_to_chess_pos(robot, session, chessboard_pos):
     # Convert the grid index to real-world coordinates
     real_x, real_y = chessboard_to_real_world(row, col)
     
-    # Convert to a Cartesian pose (X, Y, Z) and move the arm to the calculated position
-    target_pose = types.CartesianPose()
-    target_pose.x = real_x  # X in mm
-    target_pose.y = real_y  # Y in mm
-    target_pose.z = Z_FIXED  # Z in mm
+    # # Convert to a Cartesian pose (X, Y, Z) and move the arm to the calculated position
+    # target_pose = types.CartesianPose()
+    # target_pose.x = real_x  # X in mm
+    # target_pose.y = real_y  # Y in mm
+    # target_pose.z = Z_FIXED  # Z in mm
+
+    # Parse arguments
+    args = utilities.parseConnectionArguments()
     
-    # Send the command to move the arm to the target pose
-    try:
-        session.move_to_cartesian_pose(target_pose)
-        print(f"Arm moved to chessboard position {chessboard_pos} -> Real-world coordinates: ({real_x}, {real_y}, {Z_FIXED})")
-    except Exception as e:
-        print("Error moving arm:", e)
+    # Create connection to the device and get the router
+    with utilities.DeviceConnection.createTcpConnection(args) as router:
+        # Create required services
+        base = BaseClient(router)
 
-# Example usage
-robot, session = initialize_kinova_arm()
+        # Example core
+        x = 0.147  # Replace with desired x-coordinate
+        y = 0.182  # Replace with desired y-coordinate
+        move_to_cartesian_position(base, real_x, real_y,z=0.01)
+    
+    # # Send the command to move the arm to the target pose
+    # try:
+    #     session.move_to_cartesian_pose(target_pose)
+    #     print(f"Arm moved to chessboard position {chessboard_pos} -> Real-world coordinates: ({real_x}, {real_y}, {Z_FIXED})")
+    # except Exception as e:
+    #     print("Error moving arm:", e)
 
-if robot and session:
-    move_arm_to_chess_pos(robot, session, "e4")  # Example to move to 'e4'
+# # Example usage
+# robot, session = initialize_kinova_arm()
+
+# if robot and session:
+
+    # move_arm_to_chess_pos(robot, session, "e4")  # Example to move to 'e4'
+
+move_arm_to_chess_pos('a3')
