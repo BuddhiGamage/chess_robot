@@ -9,10 +9,10 @@ import time
 
 # Real-world coordinates of the reference positions
 real_world_coords = np.array([
-    [0.503, -0.208],  # A1
-    [0.167, -0.18],  # A8
-    [0.529, 0.132],  # H1
-    [0.19, 0.161], # H8
+    [0.491, -0.225],  # A1
+    [0.156, -0.198],  # A8
+    [0.511, 0.117],  # H1
+    [0.172, 0.139], # H8
 ])
 
 # Logical positions on the chessboard (column, row)
@@ -44,7 +44,7 @@ def get_real_world_coordinates(chess_position):
 
 
 # Function to move the Kinova arm
-def move_arm_to_chess_pos1(chessboard_pos):
+def move_arm_to_chess_pos1(chessboard_pos,z=0.2):
     """Move the Kinova arm to the given chessboard position (e.g., 'e4')."""
 
     # Convert the grid index to real-world coordinates
@@ -57,19 +57,19 @@ def move_arm_to_chess_pos1(chessboard_pos):
     with utilities.DeviceConnection.createTcpConnection(args) as router:
         # Create required services
         base = BaseClient(router)
-        # example_move_to_home_position(base)
+        # move to middle(base)
         move_arm_to_chess_pos2(base,'e4')
-        move_to_cartesian_position(base, real_x, real_y,z=0.1)
+        move_to_cartesian_position(base, real_x, real_y,z)
 
 # Function to move the Kinova arm
-def move_arm_to_chess_pos2(base,chessboard_pos):
+def move_arm_to_chess_pos2(base,chessboard_pos,z=0.2):
     """Move the Kinova arm to the given chessboard position (e.g., 'e4')."""
 
     # Convert the grid index to real-world coordinates
     real_x, real_y = get_real_world_coordinates(chessboard_pos)
 
     # example_move_to_home_position(base)
-    move_to_cartesian_position(base, real_x, real_y,z=0.15)    
+    move_to_cartesian_position(base, real_x, real_y,z)    
 
 
-move_arm_to_chess_pos1('g8')
+# move_arm_to_chess_pos1('d3')

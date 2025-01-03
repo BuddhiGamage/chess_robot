@@ -76,23 +76,23 @@ def move_to_cartesian_position(base, x, y,z=0.15):
         print("Error found in the trajectory:")
         result.trajectory_error_report.PrintDebugString()
 
-def main():
-    # Import the utilities helper module
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    import utilities
+# def main():
+#     # Import the utilities helper module
+#     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+#     import utilities
 
-    # Parse arguments
-    args = utilities.parseConnectionArguments()
+#     # Parse arguments
+#     args = utilities.parseConnectionArguments()
     
-    # Create connection to the device and get the router
-    with utilities.DeviceConnection.createTcpConnection(args) as router:
-        # Create required services
-        base = BaseClient(router)
+#     # Create connection to the device and get the router
+#     with utilities.DeviceConnection.createTcpConnection(args) as router:
+#         # Create required services
+#         base = BaseClient(router)
 
-        # Example core
-        x = 0.147  # Replace with desired x-coordinate
-        y = 0.182  # Replace with desired y-coordinate
-        move_to_cartesian_position(base, x, y)
+#         # Example core
+#         x = 0.147  # Replace with desired x-coordinate
+#         y = 0.182  # Replace with desired y-coordinate
+#         move_to_cartesian_position(base, x, y)
 
-if __name__ == "__main__":
-    exit(main())
+# if __name__ == "__main__":
+#     exit(main())
