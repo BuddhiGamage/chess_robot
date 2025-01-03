@@ -60,7 +60,7 @@ def order_points(pts):
     return rect
 
 # Usage
-image_path = "/home/buddhi/Projects/chess_robot/photos/4.jpeg"  # Replace with your image path
+image_path = "/home/buddhi/Projects/chess_robot/output_image.png"  # Replace with your image path
 try:
     chessboard = extract_chessboard(image_path)
     # cv2.imshow("Extracted Chessboard", chessboard)

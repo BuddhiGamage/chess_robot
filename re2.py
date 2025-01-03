@@ -55,18 +55,20 @@ def chessboard_to_matrix(image_path):
             y = row * square_size
 
             # # Extract the ROI of the square
-            roi = img[y:y+square_size, x:x+square_size]
+            # roi = img[y:y+square_size, x:x+square_size]
+            # roi = preprocessed_image[y:y+square_size, x:x+square_size]
 
-            # Adjust the coordinates to crop 20 pixels from each side
-            # roi = img[y+20:y+square_size-20, x+20:x+square_size-20]
-            cv2.imshow("Extracted Chessboard", roi)
-            cv2.waitKey(0)
+            # Adjust the coordinates to crop 15 pixels from each side
+            roi = img[y+15:y+square_size-15, x+15:x+square_size-15]
+            
 
             # Check if the ROI contains a letter
             # Extract the letter using pytesseract
-            letter = pytesseract.image_to_string(roi, config='--oem 1 --psm 10 -c tessedit_char_whitelist=TLXEMFRNBKQP')
+            letter = pytesseract.image_to_string(roi, config='--psm 10 -c tessedit_char_whitelist=TLXEMFRNBKQP')
             letter = letter.strip()
             print(letter)
+            cv2.imshow("Extracted Chessboard", roi)
+            cv2.waitKey(0)
 
             # Append detected letter or '1' for empty square
             if letter:

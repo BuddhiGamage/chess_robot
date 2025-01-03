@@ -6,3 +6,4 @@ cv2
 opencv-python
 pyzbar
 pytesseract
+matplotlib
