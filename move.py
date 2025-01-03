@@ -55,7 +55,7 @@ def example_move_to_home_position(base):
     action_list = base.ReadAllActions(action_type)
     action_handle = None
     for action in action_list.action_list:
-        if action.name == "Home":
+        if action.name == "Retract":
             action_handle = action.handle
 
     if action_handle == None:
