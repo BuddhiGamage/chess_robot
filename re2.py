@@ -4,7 +4,7 @@ import pytesseract
 
 
 # Preprocess the image
-def preprocess_image(img):
+def preprocess_image(img,x,y):
     
    # Convert the image to an 8-bit unsigned integer type
     gray = np.uint8(img * 255)
@@ -21,11 +21,11 @@ def preprocess_image(img):
 #     binary = cv2.dilate(binary, kernel, iterations=1)
 
     binary = cv2.adaptiveThreshold(gray_inv,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-            cv2.THRESH_BINARY,91,78)
+            cv2.THRESH_BINARY,x,y)
     
     return binary
 
-def chessboard_to_matrix(image_path):
+def chessboard_to_matrix(image_path,i,j):
     """
     Converts a chessboard image with letters to an 8x8 matrix.
 
@@ -46,11 +46,11 @@ def chessboard_to_matrix(image_path):
 
 
     # Preprocess the image
-    preprocessed_image = preprocess_image(img)
+    preprocessed_image = preprocess_image(img,i,j)
 
-    cv2.imshow("Extracted Chessboard", preprocessed_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow("Extracted Chessboard", preprocessed_image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     # Constants
     image_size = 800  # Image dimensions (assume square image)  
@@ -140,10 +140,10 @@ def chessboard_to_matrix(image_path):
             
 
 
-    # Display the final image with bounding boxes
-    cv2.imshow("Image with Bounding Boxes", image_with_boxes)
-    cv2.waitKey(0)  # Wait indefinitely until a key is pressed
-    cv2.destroyAllWindows()
+    # # Display the final image with bounding boxes
+    # cv2.imshow("Image with Bounding Boxes", image_with_boxes)
+    # cv2.waitKey(0)  # Wait indefinitely until a key is pressed
+    # cv2.destroyAllWindows()
     return matrix
 
 def convert_to_fen(board):
@@ -192,5 +192,22 @@ def convert_to_fen(board):
 
 # # Example usage
 image_path = '/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg'
-chessboard_matrix = chessboard_to_matrix(image_path)
+
+# Example board
+array = [
+    [1, 1, 1, 1, 1, 1, 1, 'F'],
+    [1, 1, 'H', 1, 'F', 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 'P', 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 'F', 1, 'P', 1, 1, 1],
+    [1, 'F', 1, 'N', 1, 1, 1, 'X'],
+    ['T', 1, 1, 1, 1, 1, 1, 1]
+]
+for x in range (3,100,2):
+    for y in range(1,100):
+         chessboard_matrix = chessboard_to_matrix(image_path,x,y)
+         if np.array_equal(chessboard_matrix, array):
+            print(x+' '+y)
+            break
 print(chessboard_matrix)

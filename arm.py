@@ -72,4 +72,4 @@ def move_arm_to_chess_pos2(base,chessboard_pos,z=0.2):
     move_to_cartesian_position(base, real_x, real_y,z)    
 
 
-# move_arm_to_chess_pos1('d3')
+move_arm_to_chess_pos1('b3',z=0.015)

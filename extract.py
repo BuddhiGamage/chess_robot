@@ -1,6 +1,6 @@
 from PIL import Image
 
-def remove_border_and_resize(image_path, border_width=40, output_size=(800, 800)):
+def remove_border_and_resize(image_path, border_width=38, output_size=(800, 800)):
     """
     Removes the border from the given image and resizes it to the specified output size.
 
