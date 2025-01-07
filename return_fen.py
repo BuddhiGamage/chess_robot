@@ -21,7 +21,7 @@ def preprocess_image(img):
 #     binary = cv2.dilate(binary, kernel, iterations=1)
 
     binary = cv2.adaptiveThreshold(gray_inv,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-            cv2.THRESH_BINARY,91,78)
+            cv2.THRESH_BINARY,23,45)
     
     return binary
 

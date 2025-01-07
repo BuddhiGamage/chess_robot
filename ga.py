@@ -18,11 +18,6 @@ image_path='/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg'
 
 # Preprocess the image
 def preprocess_image(img,x,y):
-
-    # convert x to the nearest odd number
-    if (x%2==0):
-        x=x+1
-    
     
    # Convert the image to an 8-bit unsigned integer type
     gray = np.uint8(img * 255)
@@ -125,9 +120,9 @@ def fitness(individual):
     return score
 
 # Selection function: selects two parents from the population based on fitness
-def select_parents(population, fitness_scores):
-    total_fitness = sum(fitness_scores)
-    probabilities = [f / total_fitness for f in fitness_scores]
+def select_parents(population, fitness_scores,target_max):
+
+    probabilities = [f / target_max if f >= 0 else 0 for f in fitness_scores] # 0 for negative fitness
     parents = random.choices(population, weights=probabilities, k=2)
     return parents
 
@@ -143,33 +138,42 @@ def crossover(parent1, parent2):
 def mutate(individual, mutation_rate=0.1):
     if random.random() < mutation_rate:
         x, y = individual
-        # Random mutation for x and y
-        x = random.randint(3, 100)
-        y = random.randint(1, 100)
-
-       
+        # Ensure x is always odd
+        x = random.choice(range(3, 100, 2))  # Generate odd x
+        y = random.randint(1, 100)  # y can remain any integer
         return (x, y)
     return individual
 
 # Main Genetic Algorithm function
-def genetic_algorithm(population_size=100, generations=500, mutation_rate=0.1):
-    # Initialize the population with random (x, y) pairs
-    population = [(random.randint(3, 100), random.randint(1, 100)) for _ in range(population_size)]
+def genetic_algorithm(population_size=10, generations=5, mutation_rate=0.1):
+
+    # Initialize the population with random (x, y) pairs, ensuring x is odd
+    population = [(random.choice(range(3, 100, 2)), random.randint(1, 100)) for _ in range(population_size)]
     
+    bests={}
+
+    arr = np.array(target_array)
+    target_max=len([item for item in arr.flatten() if isinstance(item, str) and item.isalpha()])
     for generation in range(generations):
         # Evaluate fitness for each individual in the population
         fitness_scores = [fitness(individual) for individual in population]
         
+        best_individual = population[fitness_scores.index(max(fitness_scores))]
+        bests[max(fitness_scores)]=best_individual
+        
+        print(f"Best solution in generation {generation}: {max(fitness_scores)} {best_individual}")
+        
+
+
         # Check if we found a solution (fitness == max)
-        if max(fitness_scores) == np.prod(np.array(target_array).shape):
-            best_individual = population[fitness_scores.index(max(fitness_scores))]
-            print(f"Solution found at generation {generation}: {best_individual}")
+        if max(fitness_scores) == target_max:            
+            print(f"Solution found at generation {generation}: {max(fitness_scores)} {best_individual}")
             return best_individual
         
         # Create a new population by selecting parents and applying crossover and mutation
         new_population = []
         for _ in range(population_size // 2):  # Each iteration generates two offspring
-            parent1, parent2 = select_parents(population, fitness_scores)
+            parent1, parent2 = select_parents(population, fitness_scores,target_max)
             offspring1 = crossover(parent1, parent2)
             offspring2 = crossover(parent2, parent1)
             new_population.append(mutate(offspring1, mutation_rate))
@@ -178,14 +182,19 @@ def genetic_algorithm(population_size=100, generations=500, mutation_rate=0.1):
         population = new_population  # Replace the old population with the new one
 
     # If no solution is found, return the best individual
-    best_individual = population[fitness_scores.index(max(fitness_scores))]
-    print(f"Best solution after {generations} generations: {best_individual}")
+    # Find the maximum key and corresponding value
+    max_score = max(bests.keys())
+    best_individual = bests[max_score]
+    print(f"Best solution after {generations} generations: {max_score} {best_individual}")
     return best_individual
 
 
 # Load the image in grayscale
 img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
-# # Run the genetic algorithm
+# Run the genetic algorithm
 best_values = genetic_algorithm()
 print(f"Best x and y values found: {best_values}")
+
+# f=fitness((23,45))
+# print(f)
