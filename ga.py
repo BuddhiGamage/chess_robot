@@ -15,6 +15,7 @@ target_array = [
     ['T', 1, 1, 1, 1, 1, 1, 1]
 ]
 image_path='/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg'
+
 # Preprocess the image
 def preprocess_image(img,x,y):
 
@@ -34,7 +35,7 @@ def preprocess_image(img,x,y):
     return binary
 
 # Placeholder function for chessboard_to_matrix
-def chessboard_to_matrix(image_path,i,j):
+def chessboard_to_matrix(img,i,j):
     """
     Converts a chessboard image with letters to an 8x8 matrix.
 
@@ -46,13 +47,7 @@ def chessboard_to_matrix(image_path,i,j):
         where '1' represents empty squares and letters represent 
         squares with corresponding letters.
     """
-
-    # Load the image in grayscale
-    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-
-    # Preprocess the image
-    preprocessed_image = preprocess_image(img,i,j)
-
+    
     # Constants
     image_size = 800  # Image dimensions (assume square image)  
     top_border = 38  # Top border width in pixels
@@ -63,10 +58,15 @@ def chessboard_to_matrix(image_path,i,j):
     square_width = (image_size - left_border - right_border) // num_squares
     square_height = (image_size - top_border - bottom_border) // num_squares
     extra_boundary = 10  # Additional boundary in pixels
+    
     # Resize the image to ensure it's 800x800
     img = cv2.resize(img, (image_size, image_size))
-    
 
+    # Preprocess the image
+    preprocessed_image = preprocess_image(img,i,j)
+
+    
+    
     # Create an empty 8x8 matrix
     matrix = np.zeros((8, 8), dtype=object)
 
@@ -112,8 +112,17 @@ def chessboard_to_matrix(image_path,i,j):
 # Fitness function: measures how close a generated matrix is to the target array
 def fitness(individual):
     x, y = individual
-    chessboard_matrix = chessboard_to_matrix(image_path, x, y)
-    return np.sum(np.array(chessboard_matrix) == np.array(target_array))
+    chessboard_matrix = chessboard_to_matrix(img, x, y)
+    score = 0
+    for i in range(len(chessboard_matrix)):
+        for j in range(len(chessboard_matrix[i])):
+            if(target_array[i][j]==1):
+                if chessboard_matrix[i][j]!=1:
+                    score-=1
+            elif isinstance(chessboard_matrix[i][j], str) and chessboard_matrix[i][j] == target_array[i][j]:
+                score += 1  # Increment score for matching letters
+    
+    return score
 
 # Selection function: selects two parents from the population based on fitness
 def select_parents(population, fitness_scores):
@@ -173,6 +182,10 @@ def genetic_algorithm(population_size=100, generations=500, mutation_rate=0.1):
     print(f"Best solution after {generations} generations: {best_individual}")
     return best_individual
 
-# Run the genetic algorithm
+
+# Load the image in grayscale
+img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+# # Run the genetic algorithm
 best_values = genetic_algorithm()
 print(f"Best x and y values found: {best_values}")

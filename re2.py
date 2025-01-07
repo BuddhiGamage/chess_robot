@@ -25,7 +25,7 @@ def preprocess_image(img,x,y):
     
     return binary
 
-def chessboard_to_matrix(image_path,i,j):
+def chessboard_to_matrix(img,i,j):
     """
     Converts a chessboard image with letters to an 8x8 matrix.
 
@@ -37,9 +37,6 @@ def chessboard_to_matrix(image_path,i,j):
         where '1' represents empty squares and letters represent 
         squares with corresponding letters.
     """
-
-    # Load the image in grayscale
-    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
         
     # Copy of the image for drawing bounding boxes
     image_with_boxes = img.copy()
@@ -193,6 +190,9 @@ def convert_to_fen(board):
 # # Example usage
 image_path = '/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg'
 
+# Load the image in grayscale
+img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
 # Example board
 array = [
     [1, 1, 1, 1, 1, 1, 1, 'F'],
@@ -206,8 +206,8 @@ array = [
 ]
 for x in range (3,100,2):
     for y in range(1,100):
-         chessboard_matrix = chessboard_to_matrix(image_path,x,y)
+         chessboard_matrix = chessboard_to_matrix(img,x,y)
          if np.array_equal(chessboard_matrix, array):
-            print(x+' '+y)
+            print('Best x:{x} and y"{y}')
             break
 print(chessboard_matrix)
