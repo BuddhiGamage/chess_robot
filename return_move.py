@@ -44,6 +44,6 @@ current_state = [
     [1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
-# Get the move
-move = get_move(previous_state, current_state)
-print(move)
+# # Get the move
+# move = get_move(previous_state, current_state)
+# print(move)

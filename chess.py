@@ -16,6 +16,7 @@ from photo import capture_image_from_realsense
 from chess_board_extract import extract_chessboard,remove_border_and_resize
 
 from return_fen import convert_to_fen, chessboard_to_matrix
+from return_move import get_move
 
 
 snap="chess_board_snap.jpg"
@@ -32,9 +33,23 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 # Initialize the Stockfish engine
 stockfish = Stockfish()
 
+stockfish.set_position([])
+
 # Set the skill level (1-20, default is 20)
 stockfish.set_skill_level(10)
 
+ini_board = [
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0],  # initial position
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1]
+]
+
+prev_board = ini_board
 # Create connection to the device and get the router
 with utilities.DeviceConnection.createTcpConnection(args) as router:
     gripper = Gripper(router)
@@ -53,25 +68,25 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
         cv2.imwrite(extracted_board, board)
 
-        resized_image=remove_border_and_resize(extracted_board)
-        resized_image.save(extracted_board_with_no_border)
-
-        matrix=chessboard_to_matrix(extracted_board_with_no_border)
-        current_fen=convert_to_fen(matrix)
+        matrix=chessboard_to_matrix(extracted_board)
+        current_board=get_current_board()
+        prev=convert_to_fen(matrix)
         previous_fen=stockfish.get_fen_position()
         
         print(current_fen)
         print(matrix)
         print(previous_fen)
 
-        # move=
+        move=get_move(prev_board,current_board)
+
+        prev_board=get_current_board()
 
         # update the move
-        stockfish.set_position(["d2d4"])
+        stockfish.make_moves_from_current_position([move])
         
         # Get the best move from the current position
-        # best_move = stockfish.get_best_move()
-        best_move = 'g8f6'
+        best_move = stockfish.get_best_move()
+        # best_move = 'g8f6'
         print("Best move:", best_move)
 
 
