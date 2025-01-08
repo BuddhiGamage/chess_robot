@@ -5,6 +5,7 @@ import chess.svg
 def main():
     # Initialize the chess board
     board = chess.Board()
+    board.clean_castling_rights()
 
     # Use the Stockfish engine for AI moves (make sure it's installed and available on your system)
     engine_path = "/usr/games/stockfish"  # Replace with the actual path to Stockfish

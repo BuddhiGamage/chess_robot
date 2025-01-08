@@ -33,6 +33,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 # Initialize the chess board
 board = chess.Board()
+board.clean_castling_rights()
+
 prev_board = [
     [1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1],
@@ -99,18 +101,8 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
             # Let the AI make its move
             print("AI is thinking...")
+            result = engine.play(board, chess.engine.Limit(time=1.0))  # AI moves with a 1-second time limit
             
-             # Filter out castling moves from the legal moves
-            legal_moves = [move for move in board.legal_moves if not move.castling]
-            
-            # If there are legal moves left (excluding castling moves), let the engine pick one
-            if legal_moves:
-                result = engine.play(board, chess.engine.Limit(time=1.0))  # AI moves with a 1-second time limit
-            
-            else:
-                print("No legal moves available. Game over!")
-                break
-
             # Extract the move details
             ai_move = result.move
             print("AI move:", result.move)
