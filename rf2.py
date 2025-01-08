@@ -1,9 +1,6 @@
 import cv2
 import numpy as np
-import pytesseract
 
-
-# Preprocess the image
 def preprocess_image(img):
     
    # Convert the image to an 8-bit unsigned integer type
@@ -21,7 +18,7 @@ def preprocess_image(img):
 #     binary = cv2.dilate(binary, kernel, iterations=1)
 
     binary = cv2.adaptiveThreshold(gray_inv,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-            cv2.THRESH_BINARY,29,71)
+            cv2.THRESH_BINARY,333,0)
     
     # sharpen_kernel = np.array([[-1result,-1,-1], [-1,9,-1], [-1,-1,-1]])
     # sharpen = cv2.filter2D(binary, -1, sharpen_kernel)
@@ -29,6 +26,7 @@ def preprocess_image(img):
     # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
     # opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=3)
     # result = cv2.dilate(opening, kernel, iterations=3)
+
 
     return binary
 
@@ -51,13 +49,20 @@ def chessboard_to_matrix(image_path):
     # Copy of the image for drawing bounding boxes
     image_with_boxes = img.copy()
 
-
     # Preprocess the image
     preprocessed_image = preprocess_image(img)
 
     cv2.imshow("Extracted Chessboard", preprocessed_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+    # Define the dictionary we used to generate the marker
+    aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+    aruco_params = cv2.aruco.DetectorParameters()
+
+    # Detect the markers in the image
+    detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
 
     # Constants
     image_size = 800  # Image dimensions (assume square image)  
@@ -72,6 +77,7 @@ def chessboard_to_matrix(image_path):
     # Resize the image to ensure it's 800x800
     img = cv2.resize(img, (image_size, image_size))
     
+    count =0
 
     # Create an empty 8x8 matrix
     matrix = np.zeros((8, 8), dtype=object)
@@ -79,9 +85,6 @@ def chessboard_to_matrix(image_path):
     # Iterate through each square
     for row in range(num_squares):
         for col in range(num_squares):
-            # # Calculate x and y coordinates of the square
-            # x = col * square_size
-            # y = row * square_size
 
             # Adjust coordinates for the top and bottom halves based on the borders
             if row < num_squares // 2:
@@ -109,49 +112,34 @@ def chessboard_to_matrix(image_path):
             cv2.rectangle(image_with_boxes, (start_x, start_y), 
                         (end_x, end_y), (0, 255, 0), 2)
 
-            # # Extract the ROI of the square
-            # roi = preprocessed_image[adjusted_start_y:adjusted_end_y, adjusted_start_x:adjusted_end_x]
+            # Extract the ROI of the square
             roi = img[adjusted_start_y:adjusted_end_y, adjusted_start_x:adjusted_end_x]
-            # roi = img[adjusted_start_y:adjusted_end_y, adjusted_start_x:adjusted_end_x]
-            # roi = preprocessed_image[y:y+square_size, x:x+square_size]
 
-            # Adjust the coordinates to crop 15 pixels from each side
-            # roi = img[y+15:y+square_size-15, x+15:x+square_size-15]
-            # roi = preprocessed_image[y+5:y+square_size-5, x+5:x+square_size-5]
+            
+            corners, ids, rejected = detector.detectMarkers(roi)
 
-            # Check if the ROI contains a letter
-            # Extract the letter using pytesseract
-            letter = pytesseract.image_to_string(roi, config='--psm 10 -c tessedit_char_whitelist=THXWMFRNBKQP')
-            letter = letter.strip()
-            # print(letter)
+            # Draw detected markers on the image
+            if ids is not None:
+                matrix[row][col] = 1
+                roi = cv2.aruco.drawDetectedMarkers(roi.copy(), corners, ids)
+                count+=1
+                # cv2.imshow("Extracted Chessboard", roi)
+                # cv2.waitKey(0)
+            else:
+                matrix[row][col] = 0
+
+            
             # cv2.imshow("Extracted Chessboard", roi)
             # cv2.waitKey(0)
-
-            # Add text to indicate the square's coordinates
-            cv2.putText(
-                image_with_boxes,
-                # f"({row}, {col}): {letter}",
-                f"{letter}",
-                (start_x + 10, start_y + 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.5,
-                (0, 255, 0),
-                1,
-                cv2.LINE_AA
-            )
-
-            # Append detected letter or '1' for empty square
-            if letter:
-                matrix[row][col] = letter
-            else:
-                matrix[row][col] = 1
+            
             
 
 
-    # Display the final image with bounding boxes
-    cv2.imshow("Image with Bounding Boxes", image_with_boxes)
-    cv2.waitKey(0)  # Wait indefinitely until a key is pressed
-    cv2.destroyAllWindows()
+    # # Display the final image with bounding boxes
+    # cv2.imshow("Image with Bounding Boxes", image_with_boxes)
+    # cv2.waitKey(0)  # Wait indefinitely until a key is pressed
+    # cv2.destroyAllWindows()
+    print(count)
     return matrix
 
 def convert_to_fen(board):

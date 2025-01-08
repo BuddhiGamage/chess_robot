@@ -6,7 +6,7 @@ import pytesseract
 # Define the target array
 target_array = [
     [1, 1, 1, 1, 1, 1, 1, 'F'],
-    [1, 1, 'H', 1, 'F', 1, 1, 1],
+    [1, 1, 'L', 1, 'F', 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 'P', 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1],
@@ -93,7 +93,7 @@ def chessboard_to_matrix(img,i,j):
             # # Extract the ROI of the square
             roi = preprocessed_image[adjusted_start_y:adjusted_end_y, adjusted_start_x:adjusted_end_x]
 
-            letter = pytesseract.image_to_string(roi, config='--psm 10 -c tessedit_char_whitelist=THXWMFRNBKQP')
+            letter = pytesseract.image_to_string(roi, config='--psm 10 -c tessedit_char_whitelist=TLXEMFRNBKQP')
             letter = letter.strip()
 
             # Append detected letter or '1' for empty square
@@ -145,7 +145,7 @@ def mutate(individual, mutation_rate=0.1):
     return individual
 
 # Main Genetic Algorithm function
-def genetic_algorithm(population_size=10, generations=5, mutation_rate=0.1):
+def genetic_algorithm(population_size=20, generations=10, mutation_rate=0.2):
 
     # Initialize the population with random (x, y) pairs, ensuring x is odd
     population = [(random.choice(range(3, 100, 2)), random.randint(1, 100)) for _ in range(population_size)]
