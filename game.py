@@ -1,5 +1,4 @@
 import chess
-import chess.engine
 import chess.svg
 
 import sys
@@ -17,8 +16,9 @@ from pick_and_place import Gripper
 from photo import capture_image_from_realsense
 from chess_board_extract import extract_chessboard,remove_border_and_resize
 
-from return_fen import convert_to_fen, chessboard_to_matrix
-from return_move import get_move
+from rf2 import convert_to_fen, chessboard_to_matrix
+from return_move import find_chess_move
+
 
 snap="chess_board_snap.jpg"
 extracted_board="extracted_chessboard.jpg"
@@ -34,16 +34,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 # Initialize the chess board
 board = chess.Board()
 board.clean_castling_rights()
+piece_count=32
 
 prev_board = [
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0],  # initial position
+    [3, 1, 2, 3, 5, 2, 1, 3],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1]
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [6, 6, 6, 6, 6, 6, 6, 6],
+    [9, 7, 8, 11, 10, 8, 7, 9]
 ]
 
 # Use the Stockfish engine for AI moves (make sure it's installed and available on your system)
@@ -61,12 +62,12 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             print(board)
 
             # oppent will play as white and do the first move and press n.
-            user_input = input("Press 'n' after move")
+            user_input = input("Press enter after move")
 
             # generate fen from the image
             move_arm_to_position(gripper.base, 0.077,0.127, 0.15) # home pose before taking the snap of the chess board
 
-            time.sleep(1)
+            time.sleep(3)
 
             capture_image_from_realsense(snap) # taking the snap
 
@@ -74,15 +75,21 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
             cv2.imwrite(extracted_board, board)
 
-            current_board=chessboard_to_matrix(extracted_board)
+            current_board,count=chessboard_to_matrix(extracted_board)
+            while count!=piece_count:
+                capture_image_from_realsense(snap) # taking the snap
+                board=extract_chessboard(snap)
+                cv2.imwrite(extracted_board, board)
+                current_board,count=chessboard_to_matrix(extracted_board)
 
             # Get the human player's move
-            human_move=get_move(prev_board,current_board)
+            human_move,is_capture=find_chess_move(prev_board,current_board)
 
-            if human_move.lower() == "quit":
-                print("Exiting the game. Goodbye!")
-                break
+            if(is_capture):
+                piece_count-=1
+            print(human_move)
 
+            
             try:
                 # Parse and apply the human player's move
                 move = chess.Move.from_uci(human_move)
@@ -126,22 +133,22 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
                 # Move the arm to the captured piece's position (captured_square)
                 move_arm_to_chess_pos2(gripper.base,'e4')
                 move_arm_to_chess_pos2(gripper.base, captured_square)
-                gripper.pick_chess_piece(target_z=0.049)  # Example pick
+                gripper.pick_chess_piece(target_z=0.020)  # Example pick
 
                 # Move the arm to the bucket (replace with actual bucket coordinates)
                 bucket_coordinates = 'h1'  # Example bucket position (change as needed)
                 move_arm_to_chess_pos2(gripper.base, bucket_coordinates)
-                gripper.place_chess_piece(target_z=0.049)  # Example place
+                gripper.place_chess_piece(target_z=0.020)  # Example place
 
 
             # Perform the AI's move    
             move_arm_to_chess_pos2(gripper.base,'e4')
             move_arm_to_chess_pos2(gripper.base,source_pos)
-            gripper.pick_chess_piece(target_z=0.049)  # Example pick
+            gripper.pick_chess_piece(target_z=0.025)  # Example pick
             time.sleep(2)
             move_arm_to_chess_pos2(gripper.base,'e4')
             move_arm_to_chess_pos2(gripper.base,target_pos)
-            gripper.place_chess_piece(target_z=0.049)  # Example place
+            gripper.place_chess_piece(target_z=0.020)  # Example place
 
             # Push the move on the board to update the state
             board.push(ai_move)

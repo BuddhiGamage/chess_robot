@@ -2,10 +2,15 @@ import cv2
 import matplotlib.pyplot as plt
 
 # Load the image
-image_path = "/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg"  # Replace with the path to your image
-# image_path = '/home/buddhi/Projects/chess_robot/output_image.png'
+# image_path = "/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg"  # Replace with the path to your image
+image_path = '/home/buddhi/Projects/chess_robot/output_image.png'
 image = cv2.imread(image_path)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
+
+# Display the image with bounding boxes
+cv2.imshow("Detected Red Rectangles", gray)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
 # Define the dictionary we used to generate the marker
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)

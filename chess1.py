@@ -15,8 +15,8 @@ from pick_and_place import Gripper
 from photo import capture_image_from_realsense
 from chess_board_extract import extract_chessboard,remove_border_and_resize
 
-from return_fen import convert_to_fen, chessboard_to_matrix
-from return_move import get_move
+from rf2 import convert_to_fen, chessboard_to_matrix
+from return_move import find_chess_move
 
 
 snap="chess_board_snap.jpg"
@@ -38,15 +38,26 @@ stockfish.set_position([])
 # Set the skill level (1-20, default is 20)
 stockfish.set_skill_level(10)
 
+# ini_board = [
+#     [1, 1, 1, 1, 1, 1, 1, 1],
+#     [1, 1, 1, 1, 1, 1, 1, 1],
+#     [0, 0, 0, 0, 0, 0, 0, 0],  # initial position
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [1, 1, 1, 1, 1, 1, 1, 1],
+#     [1, 1, 1, 1, 1, 1, 1, 1]
+# ]
+
 ini_board = [
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0],  # initial position
+    [3, 1, 2, 3, 5, 2, 1, 3],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1]
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [6, 6, 6, 6, 6, 6, 6, 6],
+    [9, 7, 8, 11, 10, 8, 7, 9]
 ]
 
 prev_board = ini_board
@@ -61,6 +72,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
         # generate fen from the image
         move_arm_to_position(gripper.base, 0.077,0.127, 0.15) # home pose before taking the snap of the chess board
+        time.sleep(3)
 
         capture_image_from_realsense(snap) # taking the snap
 
@@ -68,18 +80,20 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
         cv2.imwrite(extracted_board, board)
 
-        matrix=chessboard_to_matrix(extracted_board)
-        current_board=get_current_board()
-        prev=convert_to_fen(matrix)
+        matrix,c=chessboard_to_matrix(extracted_board)
+        print(c)
+        # current_board=get_current_board()
+        # prev=convert_to_fen(matrix)
         previous_fen=stockfish.get_fen_position()
         
-        print(current_fen)
+        # print(current_fen)
         print(matrix)
         print(previous_fen)
 
-        move=get_move(prev_board,current_board)
+        move,cap=find_chess_move(prev_board,matrix)
+        print(move)
 
-        prev_board=get_current_board()
+        # prev_board=get_current_board()
 
         # update the move
         stockfish.make_moves_from_current_position([move])
@@ -95,11 +109,11 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         
         move_arm_to_chess_pos2(gripper.base,'e4')
         move_arm_to_chess_pos2(gripper.base,pick)
-        gripper.pick_chess_piece(target_z=0.049)  # Example pick
+        gripper.pick_chess_piece(target_z=0.015)  # Example pick
         time.sleep(2)
         move_arm_to_chess_pos2(gripper.base,'e4')
         move_arm_to_chess_pos2(gripper.base,place)
-        gripper.place_chess_piece(target_z=0.049)  # Example place
+        gripper.place_chess_piece(target_z=0.015)  # Example place
 
     # # Set the initial position (FEN string) or start with a new game
     # stockfish.set_position(["e2e4", "e7e5", "g1f3", "b8c6"])

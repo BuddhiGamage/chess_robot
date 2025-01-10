@@ -1,49 +1,62 @@
-def get_move(previous_state, current_state):
-    # Define the board columns and rows
-    columns = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-    rows = ['1', '2', '3', '4', '5', '6', '7', '8']  # Bottom to top
-
-    # Find the source and destination positions
-    source = None
-    destination = None
+def find_chess_move(initial_board, final_board):
+    # Convert the board positions into chess notation (0-indexed to chess coordinates)
+    def to_chess_notation(x, y):
+        return chr(y + ord('a')) + str(8 - x)
+    
+    start_pos = None
+    end_pos = None
+    capture=False
 
     for i in range(8):
         for j in range(8):
-            if previous_state[i][j] == 1 and current_state[i][j] == 0:
-                # Piece moved from (i, j)
-                source = columns[j] + rows[7 - i]  # Flip row index
-            elif previous_state[i][j] == 0 and current_state[i][j] == 1:
-                # Piece moved to (i, j)
-                destination = columns[j] + rows[7 - i]  # Flip row index
+            if initial_board[i][j] != final_board[i][j]:
+                if final_board[i][j] != -1 and initial_board[i][j]==-1:  # Updated position
+                    end_pos = (i, j)
+                elif final_board[i][j] != -1 and initial_board[i][j]!=-1:
+                    capture=True
+                    end_pos = (i, j)
 
-    if source and destination:
-        return f'{source}{destination}'
+    print(end_pos)
+    for i in range(8):
+        for j in range(8):
+            if initial_board[i][j] != final_board[i][j]:
+                if final_board[i][j] == -1 and final_board[end_pos[0]][end_pos[1]]==initial_board[i][j]:  # Updated position
+                    start_pos = (i, j)
+
+
+    print(start_pos)
+    # Convert to chess notation
+    if start_pos and end_pos:
+        start_square = to_chess_notation(start_pos[0], start_pos[1])
+        end_square = to_chess_notation(end_pos[0], end_pos[1])
+        return start_square + end_square,capture
     else:
-        return "No move detected"
+        return None
+    
 
 # Example matrices
-previous_state = [
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0],  # initial position
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1]
+initial_matrix = [
+    [1, 2, 3, 5, 4, 3, 2, 1],
+    [0, 0, 0, -1, 0, 0, 0, 0],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, 0, 6, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [6, 6, 6, 6, 6, 6, 6, 6],
+    [7, 8, 9, 10, 11, 9, 8, 7]
 ]
 
-current_state = [
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 1],  # Piece removed from d2
-    [0, 0, 0, 0, 0, 0, 0, 0],  # Piece added to d4
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 1, 1, 0, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1]
+final_matrix = [
+    [1, 2, 3, 5, 4, 3, 2, 1],
+    [0, 0, 0, -1, 0, 0, 0, 0],
+    [-1, -1, 6, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [6, 6, 6, 6, 6, 6, 6, 6],
+    [7, 8, 9, 10, 11, 9, 8, 7]
 ]
 
-# # Get the move
-# move = get_move(previous_state, current_state)
-# print(move)
+# # Find the move
+# move = find_chess_move(initial_matrix, final_matrix)
+# print("The move is:", move)

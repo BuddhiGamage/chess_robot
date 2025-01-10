@@ -9,10 +9,10 @@ import time
 
 # Real-world coordinates of the reference positions
 real_world_coords = np.array([
-    [0.491, -0.225],  # A1
-    [0.156, -0.198],  # A8
-    [0.511, 0.117],  # H1
-    [0.172, 0.139], # H8
+    [0.489, -0.215],  # A1
+    [0.145, -0.189],  # A8
+    [0.512, 0.114],  # H1
+    [0.172, 0.148], # H8
 ])
 
 # Logical positions on the chessboard (column, row)
@@ -44,7 +44,7 @@ def get_real_world_coordinates(chess_position):
 
 
 # Function to move the Kinova arm
-def move_arm_to_chess_pos1(chessboard_pos,z=0.2):
+def move_arm_to_chess_pos1(chessboard_pos,z=0.1):
     """Move the Kinova arm to the given chessboard position (e.g., 'e4')."""
 
     # Convert the grid index to real-world coordinates
@@ -62,7 +62,7 @@ def move_arm_to_chess_pos1(chessboard_pos,z=0.2):
         move_to_cartesian_position(base, real_x, real_y,z)
 
 # Function to move the Kinova arm
-def move_arm_to_chess_pos2(base,chessboard_pos,z=0.2):
+def move_arm_to_chess_pos2(base,chessboard_pos,z=0.1):
     """Move the Kinova arm to the given chessboard position (e.g., 'e4')."""
 
     # Convert the grid index to real-world coordinates
@@ -72,4 +72,4 @@ def move_arm_to_chess_pos2(base,chessboard_pos,z=0.2):
     move_to_cartesian_position(base, real_x, real_y,z)    
 
 
-move_arm_to_chess_pos1('b3',z=0.015)
+# move_arm_to_chess_pos1('h1',z=0.015)

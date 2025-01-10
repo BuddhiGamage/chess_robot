@@ -11,7 +11,7 @@ image = np.ones((height, width, 3), dtype=np.uint8) * 255  # white background
 red_color = (0, 0, 255)
 
 # Define the position and size of the rectangle (x, y, width, height)
-rect_x, rect_y, rect_w, rect_h = 25, 25, 50, 50
+rect_x, rect_y, rect_w, rect_h = 15, 15, 70, 70
 
 # Draw a filled red rectangle
 cv2.rectangle(image, (rect_x, rect_y), (rect_x + rect_w, rect_y + rect_h), red_color, thickness=cv2.FILLED)

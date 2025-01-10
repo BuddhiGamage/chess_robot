@@ -18,7 +18,7 @@ def preprocess_image(img):
 #     binary = cv2.dilate(binary, kernel, iterations=1)
 
     binary = cv2.adaptiveThreshold(gray_inv,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-            cv2.THRESH_BINARY,333,0)
+            cv2.THRESH_BINARY,333,40)
     
     # sharpen_kernel = np.array([[-1result,-1,-1], [-1,9,-1], [-1,-1,-1]])
     # sharpen = cv2.filter2D(binary, -1, sharpen_kernel)
@@ -50,11 +50,11 @@ def chessboard_to_matrix(image_path):
     image_with_boxes = img.copy()
 
     # Preprocess the image
-    preprocessed_image = preprocess_image(img)
+    # preprocessed_image = preprocess_image(img)
 
-    cv2.imshow("Extracted Chessboard", preprocessed_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow("Extracted Chessboard", preprocessed_image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 
     # Define the dictionary we used to generate the marker
@@ -65,7 +65,7 @@ def chessboard_to_matrix(image_path):
     detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
 
     # Constants
-    image_size = 800  # Image dimensions (assume square image)  
+    image_size = 1024  # Image dimensions (assume square image)  
     top_border = 38  # Top border width in pixels
     bottom_border = 38  # Bottom border width in pixels
     left_border = 37  # Left border width in pixels
@@ -75,7 +75,7 @@ def chessboard_to_matrix(image_path):
     square_height = (image_size - top_border - bottom_border) // num_squares
     extra_boundary = 10  # Additional boundary in pixels
     # Resize the image to ensure it's 800x800
-    img = cv2.resize(img, (image_size, image_size))
+    # img = cv2.resize(img, (image_size, image_size))
     
     count =0
 
@@ -115,18 +115,22 @@ def chessboard_to_matrix(image_path):
             # Extract the ROI of the square
             roi = img[adjusted_start_y:adjusted_end_y, adjusted_start_x:adjusted_end_x]
 
+            # cv2.imshow("Extracted Chessboard", roi)
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+
             
             corners, ids, rejected = detector.detectMarkers(roi)
 
             # Draw detected markers on the image
             if ids is not None:
-                matrix[row][col] = 1
+                matrix[row][col] = int(ids.flatten()[0])
                 roi = cv2.aruco.drawDetectedMarkers(roi.copy(), corners, ids)
                 count+=1
                 # cv2.imshow("Extracted Chessboard", roi)
                 # cv2.waitKey(0)
             else:
-                matrix[row][col] = 0
+                matrix[row][col] = -1
 
             
             # cv2.imshow("Extracted Chessboard", roi)
@@ -139,8 +143,8 @@ def chessboard_to_matrix(image_path):
     # cv2.imshow("Image with Bounding Boxes", image_with_boxes)
     # cv2.waitKey(0)  # Wait indefinitely until a key is pressed
     # cv2.destroyAllWindows()
-    print(count)
-    return matrix
+    # print(count)
+    return matrix, count
 
 def convert_to_fen(board):
     # Mapping for black pieces to their FEN notation
@@ -187,6 +191,6 @@ def convert_to_fen(board):
     return fen_notation
 
 # # Example usage
-image_path = '/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg'
-chessboard_matrix = chessboard_to_matrix(image_path)
-print(chessboard_matrix)
+# image_path = '/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg'
+# chessboard_matrix = chessboard_to_matrix(image_path)
+# print(chessboard_matrix)

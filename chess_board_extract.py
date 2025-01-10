@@ -33,7 +33,7 @@ def extract_chessboard(image_path):
     rect = order_points(points)
 
     # Define dimensions of the output chessboard image
-    max_dim = 800  # Adjust this based on the desired size
+    max_dim = 1024  # Adjust this based on the desired size
     dst = np.array([
         [0, 0],
         [max_dim - 1, 0],
