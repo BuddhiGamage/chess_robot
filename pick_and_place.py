@@ -19,7 +19,7 @@ def pick_chess_piece(base,chessboard_pos, target_z):
     print(f"Moving to target z-coordinate {target_z} while keeping x and y fixed...")
     move_arm_to_chess_pos2(base,chessboard_pos,target_z)
     # move_to_cartesian_position(self.base,current_x, current_y, target_z)
-    time.sleep(2)
+    time.sleep(1)
 
     # Close the gripper to pick the piece
     print("Closing gripper to pick the chess piece...")
@@ -29,7 +29,7 @@ def pick_chess_piece(base,chessboard_pos, target_z):
     print("Returning to original z-coordinate...")
     # move_arm_to_position(self.base,current_x, current_y, current_z)
     move_arm_to_chess_pos2(base,chessboard_pos,current_z)
-    time.sleep(2)
+    time.sleep(1)
 
 def place_chess_piece(base,chessboard_pos, target_z):
     # Move the arm to the target z-coordinate (keeping x and y fixed)

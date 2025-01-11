@@ -137,22 +137,29 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
             # Move the arm to the captured piece's position (captured_square)
             move_arm_to_chess_pos2(base,'e4')
+            time.sleep(1)
             target_z = move_arm_to_chess_pos2(base, captured_square)
+            time.sleep(1)
             pick_chess_piece(base,target_z) 
 
             # Move the arm to the bucket (replace with actual bucket coordinates)
             bucket_coordinates = 'h1'  # Example bucket position (change as needed)
             move_arm_to_chess_pos2(base, bucket_coordinates)
+            time.sleep(1)
             place_chess_piece(base,target_z=0.020)  # Example place
 
 
         # Perform the AI's move    
         move_arm_to_chess_pos2(base,'e4')
+        time.sleep(1)
         target_z = move_arm_to_chess_pos2(base,source_pos)
+        time.sleep(1)
         pick_chess_piece(target_z)  # Example pick
-        time.sleep(2)
+
         move_arm_to_chess_pos2(base,'e4')
+        time.sleep(1)
         move_arm_to_chess_pos2(base,target_pos)
+        time.sleep(1)
         place_chess_piece(target_z)  # Example place
 
         # Push the move on the board to update the state
