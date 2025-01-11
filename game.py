@@ -24,7 +24,8 @@ from return_move import find_chess_move
 snap="chess_board_snap.jpg"
 extracted_board="extracted_chessboard.jpg"
 extracted_board_with_no_border="extracted_chessboard_no_border.jpg"
-
+bucket_coordinates_x = 0.157
+bucket_coordinates_y = 0.319
 
 # Parse arguments
 parser = argparse.ArgumentParser()
@@ -143,10 +144,10 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             pick_chess_piece(base,target_z) 
 
             # Move the arm to the bucket (replace with actual bucket coordinates)
-            bucket_coordinates = 'h1'  # Example bucket position (change as needed)
-            move_arm_to_chess_pos2(base, bucket_coordinates)
-            time.sleep(1)
-            place_chess_piece(base,target_z=0.020)  # Example place
+            # bucket_coordinates = 'h1'  # Example bucket position (change as needed)
+            move_arm_to_position(base,bucket_coordinates_x,bucket_coordinates_y)
+            time.sleep(2)
+            place_chess_piece(base,target_z=0.8)  # Example place
 
 
         # Perform the AI's move    
