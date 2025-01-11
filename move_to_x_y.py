@@ -27,10 +27,14 @@ def move_to_cartesian_position(base, x, y,z=0.15):
     """
     # Fixed values for the Cartesian position
     # z = 0.01  # Fixed z-coordinate
-    theta_x = 2.385  # Fixed rotation about x-axis
-    theta_y = -176.618   # Fixed rotation about y-axis
-    theta_z = 81.918  # Fixed rotation about z-axis
+    # theta_x = 2.385  # Fixed rotation about x-axis
+    # theta_y = -176.618   # Fixed rotation about y-axis
+    # theta_z = 81.918  # Fixed rotation about z-axis
     blending_radius = 0.0  # No blending
+
+    theta_x = 1.198    # Fixed rotation about x-axis
+    theta_y = 179.782   # Fixed rotation about y-axis
+    theta_z = 85.785  # Fixed rotation about z-axis
 
     # Set the arm to Single Level Servoing mode
     base_servo_mode = Base_pb2.ServoingModeInformation()

@@ -11,7 +11,7 @@ from move_to_x_y import move_to_cartesian_position as move_arm_to_position
 from arm import move_arm_to_chess_pos2
 import utilities
 import argparse
-from pick_and_place import Gripper
+from pick_and_place import pick_chess_piece,place_chess_piece
 from photo import capture_image_from_realsense
 from chess_board_extract import extract_chessboard,remove_border_and_resize
 
@@ -63,15 +63,15 @@ ini_board = [
 prev_board = ini_board
 # Create connection to the device and get the router
 with utilities.DeviceConnection.createTcpConnection(args) as router:
-    gripper = Gripper(router)
+    base = BaseClient(router)
 
     # oppent will play as white and do the first move and press n.
     user_input = input("Press 'n' to proceed:")
 
     if user_input=='n':
-
+        move_arm_to_chess_pos2(base,'e4')
         # generate fen from the image
-        move_arm_to_position(gripper.base, 0.077,0.127, 0.15) # home pose before taking the snap of the chess board
+        move_arm_to_position(base, 0.077,0.127, 0.15) # home pose before taking the snap of the chess board
         time.sleep(3)
 
         capture_image_from_realsense(snap) # taking the snap
@@ -100,20 +100,25 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         
         # Get the best move from the current position
         best_move = stockfish.get_best_move()
-        # best_move = 'g8f6'
+        # best_move = 'b8a6'
         print("Best move:", best_move)
 
 
         pick = best_move[:2]  # First half
         place = best_move[2:]  # Second half
         
-        move_arm_to_chess_pos2(gripper.base,'e4')
-        move_arm_to_chess_pos2(gripper.base,pick)
-        gripper.pick_chess_piece(target_z=0.015)  # Example pick
-        time.sleep(2)
-        move_arm_to_chess_pos2(gripper.base,'e4')
-        move_arm_to_chess_pos2(gripper.base,place)
-        gripper.place_chess_piece(target_z=0.015)  # Example place
+        move_arm_to_chess_pos2(base,'e4')
+        target_z=move_arm_to_chess_pos2(base,pick)
+        print(target_z)
+        # quit()
+        # time.sleep(3)
+        pick_chess_piece(base,pick,target_z)  # Example pick
+        # time.sleep(3)
+        move_arm_to_chess_pos2(base,'e4')
+        # time.sleep(3)
+        move_arm_to_chess_pos2(base,place)
+        # time.sleep(3)
+        place_chess_piece(base,place,target_z)  # Example place
 
     # # Set the initial position (FEN string) or start with a new game
     # stockfish.set_position(["e2e4", "e7e5", "g1f3", "b8c6"])

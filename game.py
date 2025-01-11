@@ -1,4 +1,5 @@
 import chess
+import chess.engine
 import chess.svg
 
 import sys
@@ -12,11 +13,11 @@ from move_to_x_y import move_to_cartesian_position as move_arm_to_position
 from arm import move_arm_to_chess_pos2
 import utilities
 import argparse
-from pick_and_place import Gripper
+from pick_and_place import pick_chess_piece,place_chess_piece
 from photo import capture_image_from_realsense
-from chess_board_extract import extract_chessboard,remove_border_and_resize
+from chess_board_extract import extract_chessboard
 
-from rf2 import convert_to_fen, chessboard_to_matrix
+from rf2 import chessboard_to_matrix
 from return_move import find_chess_move
 
 
@@ -52,108 +53,112 @@ engine_path = "/usr/games/stockfish"  # Replace with the actual path to Stockfis
 
 # Create connection to the device and get the router
 with utilities.DeviceConnection.createTcpConnection(args) as router:
-    gripper = Gripper(router)
+    base = BaseClient(router)
 
-    with chess.engine.SimpleEngine.popen_uci(engine_path) as engine:
-        print("Welcome to Chess! Enter your moves in UCI notation (e.g., e2e4). Type 'quit' to exit.")
+    # with chess.engine.SimpleEngine.popen_uci(engine_path) as engine:
+    engine = chess.engine.SimpleEngine.popen_uci(engine_path)
+    print("Welcome to Chess! Enter your moves in UCI notation (e.g., e2e4). Type 'quit' to exit.")
 
-        while not board.is_game_over():
-            # Display the board
-            print(board)
+    while not board.is_game_over():
+        # Display the board
+        print(board)
 
-            # oppent will play as white and do the first move and press n.
-            user_input = input("Press enter after move")
+        # oppent will play as white and do the first move and press n.
+        user_input = input("Press enter after move")
 
-            # generate fen from the image
-            move_arm_to_position(gripper.base, 0.077,0.127, 0.15) # home pose before taking the snap of the chess board
+        move_arm_to_chess_pos2(base,'e4')
+        time.sleep(1)
 
-            time.sleep(3)
+        # generate fen from the image
+        move_arm_to_position(base, 0.077,0.127, 0.15) # home pose before taking the snap of the chess board
+        time.sleep(3)
 
+        capture_image_from_realsense(snap) # taking the snap
+
+        img_board=extract_chessboard(snap)
+
+        cv2.imwrite(extracted_board, img_board)
+
+        current_board,count=chessboard_to_matrix(extracted_board)
+        while count!=piece_count:
             capture_image_from_realsense(snap) # taking the snap
-
-            board=extract_chessboard(snap)
-
-            cv2.imwrite(extracted_board, board)
-
+            img_board=extract_chessboard(snap)
+            cv2.imwrite(extracted_board, img_board)
             current_board,count=chessboard_to_matrix(extracted_board)
-            while count!=piece_count:
-                capture_image_from_realsense(snap) # taking the snap
-                board=extract_chessboard(snap)
-                cv2.imwrite(extracted_board, board)
-                current_board,count=chessboard_to_matrix(extracted_board)
 
-            # Get the human player's move
-            human_move,is_capture=find_chess_move(prev_board,current_board)
+        # Get the human player's move
+        human_move,is_capture=find_chess_move(prev_board,current_board)
 
-            if(is_capture):
-                piece_count-=1
-            print(human_move)
+        if(is_capture):
+            piece_count-=1
+        print(human_move)
 
-            
-            try:
-                # Parse and apply the human player's move
-                move = chess.Move.from_uci(human_move)
-                if move in board.legal_moves:
-                    board.push(move)
-                else:
-                    print("Illegal move. Try again.")
-                    continue
-            except ValueError:
-                print("Invalid UCI format. Try again.")
+        
+        try:
+            # Parse and apply the human player's move
+            move = chess.Move.from_uci(human_move)
+            if move in board.legal_moves:
+                board.push(move)
+            else:
+                print("Illegal move. Try again.")
                 continue
+        except ValueError:
+            print("Invalid UCI format. Try again.")
+            continue
 
-            # Check if the game is over after the human move
-            if board.is_game_over():
-                break
+        # Check if the game is over after the human move
+        if board.is_game_over():
+            break
 
-            # Let the AI make its move
-            print("AI is thinking...")
-            result = engine.play(board, chess.engine.Limit(time=1.0))  # AI moves with a 1-second time limit
-            
-            # Extract the move details
-            ai_move = result.move
-            print("AI move:", result.move)
+        # Let the AI make its move
+        print("AI is thinking...")
+        result = engine.play(board, chess.engine.Limit(time=1.0))  # AI moves with a 1-second time limit
+        
+        # Extract the move details
+        ai_move = result.move
+        print("AI move:", result.move)
 
-            # Determine the source and target squares of the move
-            source_square = ai_move.from_square  # Starting square index (0-63)
-            target_square = ai_move.to_square    # Ending square index (0-63)
+        # Determine the source and target squares of the move
+        source_square = ai_move.from_square  # Starting square index (0-63)
+        target_square = ai_move.to_square    # Ending square index (0-63)
 
-            # Convert to algebraic notation (e.g., 'e2', 'e4')
-            source_pos = chess.square_name(source_square)  # e.g., 'e2'
-            target_pos = chess.square_name(target_square)  # e.g., 'e4'
+        # Convert to algebraic notation (e.g., 'e2', 'e4')
+        source_pos = chess.square_name(source_square)  # e.g., 'e2'
+        target_pos = chess.square_name(target_square)  # e.g., 'e4'
 
-            # Check if the target square contains an opponent's piece (indicates a capture)
-            capture_move = chess.Move.from_uci(ai_move)  # check capturing 
-            
-            if board.is_capture(capture_move):    
-                captured_square = chess.square_name(capture_move.to_square)
+        # Check if the target square contains an opponent's piece (indicates a capture)
+        capture_move = chess.Move.from_uci(ai_move)  # check capturing 
+        
+        if board.is_capture(capture_move): 
+            piece_count-=1   
+            captured_square = chess.square_name(capture_move.to_square)
 
-                print(f"The AI move captures a piece on {captured_square}.")
+            print(f"The AI move captures a piece on {captured_square}.")
 
-                # Move the arm to the captured piece's position (captured_square)
-                move_arm_to_chess_pos2(gripper.base,'e4')
-                move_arm_to_chess_pos2(gripper.base, captured_square)
-                gripper.pick_chess_piece(target_z=0.020)  # Example pick
+            # Move the arm to the captured piece's position (captured_square)
+            move_arm_to_chess_pos2(base,'e4')
+            target_z = move_arm_to_chess_pos2(base, captured_square)
+            pick_chess_piece(base,target_z) 
 
-                # Move the arm to the bucket (replace with actual bucket coordinates)
-                bucket_coordinates = 'h1'  # Example bucket position (change as needed)
-                move_arm_to_chess_pos2(gripper.base, bucket_coordinates)
-                gripper.place_chess_piece(target_z=0.020)  # Example place
+            # Move the arm to the bucket (replace with actual bucket coordinates)
+            bucket_coordinates = 'h1'  # Example bucket position (change as needed)
+            move_arm_to_chess_pos2(base, bucket_coordinates)
+            place_chess_piece(base,target_z=0.020)  # Example place
 
 
-            # Perform the AI's move    
-            move_arm_to_chess_pos2(gripper.base,'e4')
-            move_arm_to_chess_pos2(gripper.base,source_pos)
-            gripper.pick_chess_piece(target_z=0.025)  # Example pick
-            time.sleep(2)
-            move_arm_to_chess_pos2(gripper.base,'e4')
-            move_arm_to_chess_pos2(gripper.base,target_pos)
-            gripper.place_chess_piece(target_z=0.020)  # Example place
+        # Perform the AI's move    
+        move_arm_to_chess_pos2(base,'e4')
+        target_z = move_arm_to_chess_pos2(base,source_pos)
+        pick_chess_piece(target_z)  # Example pick
+        time.sleep(2)
+        move_arm_to_chess_pos2(base,'e4')
+        move_arm_to_chess_pos2(base,target_pos)
+        place_chess_piece(target_z)  # Example place
 
-            # Push the move on the board to update the state
-            board.push(ai_move)
+        # Push the move on the board to update the state
+        board.push(ai_move)
 
-        # Display the game result
-        print("Game over!")
-        print("Result:", board.result())
+    # Display the game result
+    print("Game over!")
+    print("Result:", board.result())
 

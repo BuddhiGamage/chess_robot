@@ -1,0 +1,7 @@
+# Real-world coordinates of the reference positions
+real_world_coords = np.array([
+    [0.489, -0.188, 0.03],  # A1
+    [0.175, -0.171, 0.025],  # A8
+    [0.503, 0.133,  0.03],  # H1
+    [0.183, 0.143,  0.025], # H8
+])
