@@ -92,7 +92,7 @@ def move_arm_to_chess_pos2(base,chessboard_pos,z=0.1):
 
     # example_move_to_home_position(base)
     move_to_cartesian_position(base, real_x, real_y,z)
-    return  real_z  
+    # return  real_z  
 
 # move_arm_to_chess_pos1('e4',z=0.1)
 

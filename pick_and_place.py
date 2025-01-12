@@ -9,7 +9,7 @@ from arm import move_arm_to_chess_pos2
 
 
 
-def pick_chess_piece(base,chessboard_pos, target_z):
+def pick_chess_piece(base, target_z):
     # Move the arm to the target z-coordinate (keeping x and y fixed)
     current_pose = base.GetMeasuredCartesianPose()  # Get current pose
     current_x, current_y, current_z = current_pose.x, current_pose.y, current_pose.z
@@ -17,8 +17,8 @@ def pick_chess_piece(base,chessboard_pos, target_z):
     open_gripper(base)
     
     print(f"Moving to target z-coordinate {target_z} while keeping x and y fixed...")
-    move_arm_to_chess_pos2(base,chessboard_pos,target_z)
-    # move_to_cartesian_position(self.base,current_x, current_y, target_z)
+    # move_arm_to_chess_pos2(base,chessboard_pos,target_z)
+    move_to_cartesian_position(base,current_x, current_y, target_z)
     time.sleep(1)
 
     # Close the gripper to pick the piece
@@ -27,18 +27,18 @@ def pick_chess_piece(base,chessboard_pos, target_z):
 
     # Return to the original z-coordinate
     print("Returning to original z-coordinate...")
-    # move_arm_to_position(self.base,current_x, current_y, current_z)
-    move_arm_to_chess_pos2(base,chessboard_pos,current_z)
+    move_to_cartesian_position(base,current_x, current_y, current_z)
+    # move_arm_to_chess_pos2(base,chessboard_pos,current_z)
     time.sleep(1)
 
-def place_chess_piece(base,chessboard_pos, target_z):
+def place_chess_piece(base, target_z):
     # Move the arm to the target z-coordinate (keeping x and y fixed)
     current_pose = base.GetMeasuredCartesianPose()  # Get current pose
     current_x, current_y, current_z = current_pose.x, current_pose.y, current_pose.z
 
     print(f"Moving to target z-coordinate {target_z} while keeping x and y fixed...")
-    # move_to_cartesian_position(self.base,current_x, current_y, target_z)
-    move_arm_to_chess_pos2(base,chessboard_pos,target_z)
+    move_to_cartesian_position(base,current_x, current_y, target_z)
+    # move_arm_to_chess_pos2(base,chessboard_pos,target_z)
     time.sleep(1)
 
     # Open the gripper to release the piece
@@ -47,8 +47,8 @@ def place_chess_piece(base,chessboard_pos, target_z):
 
     # Return to the original z-coordinate
     print("Returning to original z-coordinate...")
-    move_arm_to_chess_pos2(base,chessboard_pos,current_z)
-    # move_to_cartesian_position(self.base,current_x, current_y, current_z)
+    # move_arm_to_chess_pos2(base,chessboard_pos,current_z)
+    move_to_cartesian_position(base,current_x, current_y, current_z)
     time.sleep(1)
 
 def close_gripper(base):

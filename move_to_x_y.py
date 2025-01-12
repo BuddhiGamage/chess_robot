@@ -1,3 +1,4 @@
+import pdb
 import sys
 import os
 import threading
@@ -78,7 +79,8 @@ def move_to_cartesian_position(base, x, y,z=0.15):
             print("Timeout on action notification wait.")
     else:
         print("Error found in the trajectory:")
-        result.trajectory_error_report.PrintDebugString()
+        # pdb.set_trace()
+        # rPrintDebugStringesult.trajectory_error_report.PrintDebugString()
 
 # def main():
 #     # Import the utilities helper module

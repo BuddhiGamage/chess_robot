@@ -10,7 +10,7 @@ import cv2
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.messages import Base_pb2
 from move_to_x_y import move_to_cartesian_position as move_arm_to_position
-from arm import move_arm_to_chess_pos2
+from arm import move_arm_to_chess_pos2,get_real_world_coordinates
 import utilities
 import argparse
 from pick_and_place import pick_chess_piece,place_chess_piece
@@ -24,8 +24,8 @@ from return_move import find_chess_move
 snap="chess_board_snap.jpg"
 extracted_board="extracted_chessboard.jpg"
 extracted_board_with_no_border="extracted_chessboard_no_border.jpg"
-bucket_coordinates_x = 0.157
-bucket_coordinates_y = 0.319
+bucket_coordinates_x = 0.258
+bucket_coordinates_y = 0.292
 
 # Parse arguments
 parser = argparse.ArgumentParser()
@@ -38,19 +38,55 @@ board = chess.Board()
 board.clean_castling_rights()
 piece_count=32
 
+# prev_board = [
+#     [3, 1, 2, 3, 5, 2, 1, 3],
+#     [0, 0, 0, 0, 0, 0, 0, 0],
+#     [-1, -1, -1, -1, -1, -1, -1, -1],
+#     [-1, -1, -1, -1, -1, -1, -1, -1],
+#     [-1, -1, -1, -1, -1, -1, -1, -1],
+#     [-1, -1, -1, -1, -1, -1, -1, -1],
+#     [6, 6, 6, 6, 6, 6, 6, 6],
+#     [9, 7, 8, 11, 10, 8, 7, 9]
+# ]
+
 prev_board = [
-    [3, 1, 2, 3, 5, 2, 1, 3],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [9, 7, 8, 11, 10, 8, 7, 9],
     [6, 6, 6, 6, 6, 6, 6, 6],
-    [9, 7, 8, 11, 10, 8, 7, 9]
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [3, 1, 2, 4, 5, 2, 1, 3]
 ]
 
 # Use the Stockfish engine for AI moves (make sure it's installed and available on your system)
 engine_path = "/usr/games/stockfish"  # Replace with the actual path to Stockfish
+
+
+def board_to_matrix(board):
+    # Map pieces to numeric values
+    piece_to_value = {
+        'p': 6, 'r': 9, 'n': 7, 'b': 8, 'q': 11, 'k': 10,  # Black pieces
+        'P': 0, 'R': 3, 'N': 1, 'B': 2, 'Q': 4, 'K': 5,    # White pieces
+        None: -1  # Empty squares
+    }
+    
+    # Convert the board to a matrix
+    matrix = []
+    for square in chess.SQUARES:  # Loop through all squares (a1-h8)
+        piece = board.piece_at(square)  # Get the piece on the square
+        piece_symbol = piece.symbol() if piece else None  # Get piece symbol or None
+        if square % 8 == 0:  # Start of a new row
+            matrix.append([])  # Add a new row to the matrix
+        matrix[-1].append(piece_to_value[piece_symbol])  # Add the value to the matrix
+    
+    # Reverse rows to place black pieces on top
+    matrix.reverse()
+    
+    return matrix
+
+
 
 # Create connection to the device and get the router
 with utilities.DeviceConnection.createTcpConnection(args) as router:
@@ -81,7 +117,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         cv2.imwrite(extracted_board, img_board)
 
         current_board,count=chessboard_to_matrix(extracted_board)
-        while count!=piece_count:
+        while count!=piece_count and count!=piece_count-1:
             capture_image_from_realsense(snap) # taking the snap
             img_board=extract_chessboard(snap)
             cv2.imwrite(extracted_board, img_board)
@@ -128,7 +164,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         target_pos = chess.square_name(target_square)  # e.g., 'e4'
 
         # Check if the target square contains an opponent's piece (indicates a capture)
-        capture_move = chess.Move.from_uci(ai_move)  # check capturing 
+        capture_move = chess.Move.from_uci(str(ai_move))  # check capturing 
         
         if board.is_capture(capture_move): 
             piece_count-=1   
@@ -139,7 +175,8 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             # Move the arm to the captured piece's position (captured_square)
             move_arm_to_chess_pos2(base,'e4')
             time.sleep(1)
-            target_z = move_arm_to_chess_pos2(base, captured_square)
+            _,_,target_z = get_real_world_coordinates(captured_square)
+            move_arm_to_chess_pos2(base, captured_square)
             time.sleep(1)
             pick_chess_piece(base,target_z) 
 
@@ -153,18 +190,24 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         # Perform the AI's move    
         move_arm_to_chess_pos2(base,'e4')
         time.sleep(1)
-        target_z = move_arm_to_chess_pos2(base,source_pos)
+        _,_,target_z = get_real_world_coordinates(source_pos)
+        print(target_z)
+        move_arm_to_chess_pos2(base,source_pos)
         time.sleep(1)
-        pick_chess_piece(target_z)  # Example pick
+        pick_chess_piece(base,target_z)  # Example pick
 
         move_arm_to_chess_pos2(base,'e4')
         time.sleep(1)
         move_arm_to_chess_pos2(base,target_pos)
         time.sleep(1)
-        place_chess_piece(target_z)  # Example place
+        place_chess_piece(base,target_z)  # Example place
 
         # Push the move on the board to update the state
         board.push(ai_move)
+
+        # Convert the board to a matrix
+        prev_board = board_to_matrix(board)
+        
 
     # Display the game result
     print("Game over!")

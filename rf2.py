@@ -143,7 +143,7 @@ def chessboard_to_matrix(image_path):
     # cv2.imshow("Image with Bounding Boxes", image_with_boxes)
     # cv2.waitKey(0)  # Wait indefinitely until a key is pressed
     # cv2.destroyAllWindows()
-    # print(count)
+    print(count)
     return matrix, count
 
 def convert_to_fen(board):
