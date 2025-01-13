@@ -144,7 +144,7 @@ def chessboard_to_matrix(image_path):
     # cv2.waitKey(0)  # Wait indefinitely until a key is pressed
     # cv2.destroyAllWindows()
     print(count)
-    return matrix, count
+    return matrix.tolist(), count
 
 def convert_to_fen(board):
     # Mapping for black pieces to their FEN notation
