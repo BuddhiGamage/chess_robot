@@ -60,17 +60,17 @@ stockfish.set_skill_level(10)
 #     [9, 7, 8, 11, 10, 8, 7, 9]
 # ]
 
-ini_board = [
-    [9, 7, 8, 11, 10, 8, 7, 9],
+prev_board = [
+    [9, 7, 8, 10, 11, 8, 7, 9],
     [6, 6, 6, 6, 6, 6, 6, 6],
     [-1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [3, 1, 2, 4, 5, 2, 1, 3]
+    [3, 1, 2, 5, 4, 2, 1, 3]
 ]
-prev_board = ini_board
+
 # Create connection to the device and get the router
 with utilities.DeviceConnection.createTcpConnection(args) as router:
     base = BaseClient(router)

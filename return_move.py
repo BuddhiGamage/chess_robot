@@ -1,7 +1,8 @@
+def to_chess_notation(x, y):
+    return chr(y + ord('a')) + str(8 - x)
+
 def find_chess_move(initial_board, final_board):
     # Convert the board positions into chess notation (0-indexed to chess coordinates)
-    def to_chess_notation(x, y):
-        return chr(y + ord('a')) + str(8 - x)
     
     start_pos = None
     end_pos = None
@@ -16,7 +17,7 @@ def find_chess_move(initial_board, final_board):
                     capture=True
                     end_pos = (i, j)
 
-    print(end_pos)
+    print(to_chess_notation(end_pos[0], end_pos[1]))
     for i in range(8):
         for j in range(8):
             if initial_board[i][j] != final_board[i][j]:
@@ -24,7 +25,7 @@ def find_chess_move(initial_board, final_board):
                     start_pos = (i, j)
 
 
-    print(start_pos)
+    print(to_chess_notation(start_pos[0], start_pos[1]))
     # Convert to chess notation
     if start_pos and end_pos:
         start_square = to_chess_notation(start_pos[0], start_pos[1])

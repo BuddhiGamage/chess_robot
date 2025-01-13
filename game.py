@@ -50,14 +50,14 @@ piece_count=32
 # ]
 
 prev_board = [
-    [9, 7, 8, 11, 10, 8, 7, 9],
+    [9, 7, 8, 10, 11, 8, 7, 9],
     [6, 6, 6, 6, 6, 6, 6, 6],
     [-1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [3, 1, 2, 4, 5, 2, 1, 3]
+    [3, 1, 2, 5, 4, 2, 1, 3]
 ]
 
 # Use the Stockfish engine for AI moves (make sure it's installed and available on your system)
@@ -68,7 +68,7 @@ def board_to_matrix(board):
     # Map pieces to numeric values
     piece_to_value = {
         'p': 6, 'r': 9, 'n': 7, 'b': 8, 'q': 11, 'k': 10,  # Black pieces
-        'P': 0, 'R': 3, 'N': 1, 'B': 2, 'Q': 4, 'K': 5,    # White pieces
+        'P': 0, 'R': 3, 'N': 1, 'B': 2, 'Q': 5, 'K': 4,    # White pieces
         None: -1  # Empty squares
     }
     
@@ -124,6 +124,8 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             current_board,count=chessboard_to_matrix(extracted_board)
 
         # Get the human player's move
+        print(prev_board)
+        print(current_board)
         human_move,is_capture=find_chess_move(prev_board,current_board)
 
         if(is_capture):
