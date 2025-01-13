@@ -273,7 +273,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         
         
 
-    # Display the game result
-    print("Game over!")
-    print("Result:", board.result())
+# Display the game result
+print("Game over!")
+print("Result:", board.result())
 
