@@ -44,7 +44,9 @@ def find_chess_move(initial_board, final_board,castling_availability):
                     capture=True
                     end_pos = (i, j)
 
-    print(to_chess_notation(end_pos[0], end_pos[1]))
+    if end_pos==None:
+        return None,False,castling_availability
+
     for i in range(8):
         for j in range(8):
             if initial_board[i][j] != final_board[i][j]:
@@ -52,11 +54,11 @@ def find_chess_move(initial_board, final_board,castling_availability):
                     start_pos = (i, j)
 
 
-    print(to_chess_notation(start_pos[0], start_pos[1]))
     # Convert to chess notation
     if start_pos and end_pos:
         start_square = to_chess_notation(start_pos[0], start_pos[1])
         end_square = to_chess_notation(end_pos[0], end_pos[1])
+        print(start_square+end_square)
         return start_square + end_square,capture,castling_availability
     else:
         return None,False,castling_availability

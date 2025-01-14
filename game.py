@@ -140,7 +140,6 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         if human_move==None:
             print("Move did not Capture. Try again")
             continue
-        
         print("human move: ", human_move)
 
         print('castling availability: '+str(castling_availability))
