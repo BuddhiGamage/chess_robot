@@ -20,7 +20,8 @@ def detect_white_king_castling(initial_board, final_board):
         elif final_board[7][2] == 4:  # King moved to c1
             return (7,4),(7,2),False
     else:
-        return None,None,True
+        return None,None,False
+    return None,None,True
 def find_chess_move(initial_board, final_board,castling_availability):
     # Convert the board positions into chess notation (0-indexed to chess coordinates)
     
@@ -29,7 +30,7 @@ def find_chess_move(initial_board, final_board,castling_availability):
     capture=False
     if (castling_availability):
         start_pos,end_pos,castling_availability=detect_white_king_castling(initial_board,final_board)
-        if(castling_availability==False):
+        if(start_pos != None):
             start_square = to_chess_notation(start_pos[0], start_pos[1])
             end_square = to_chess_notation(end_pos[0], end_pos[1])
             return start_square+end_square,capture,castling_availability
@@ -57,6 +58,8 @@ def find_chess_move(initial_board, final_board,castling_availability):
         start_square = to_chess_notation(start_pos[0], start_pos[1])
         end_square = to_chess_notation(end_pos[0], end_pos[1])
         return start_square + end_square,capture,castling_availability
+    else:
+        return None,False,castling_availability
     # else:
     #     return None
     

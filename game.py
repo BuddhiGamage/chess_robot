@@ -137,6 +137,10 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         print(current_board)
         human_move,is_capture,castling_availability=find_chess_move(prev_board,current_board,castling_availability)
         
+        if human_move==None:
+            print("Move did not Capture. Try again")
+            continue
+        
         print("human move: ", human_move)
 
         print('castling availability: '+str(castling_availability))
