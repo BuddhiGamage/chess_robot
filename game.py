@@ -225,8 +225,12 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         # capture_move = chess.Move.from_uci(str(ai_move))  # check capturing 
         
         if board.is_capture(ai_move): 
-            piece_count-=1   
-            captured_square = chess.square_name(ai_move.to_square)
+            piece_count-=1
+            if board.is_en_passant(ai_move):
+                captured_square = chess.square(chess.square_file(ai_move.to_square), chess.square_rank(ai_move.from_square))   
+            else:
+                captured_square = ai_move.to_square
+            captured_square = chess.square_name(captured_square)
 
             print(f"The AI move captures a piece on {captured_square}.")
 
