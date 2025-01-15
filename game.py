@@ -20,6 +20,7 @@ from chess_board_extract import extract_chessboard
 from rf2 import chessboard_to_matrix
 from return_move import find_chess_move
 
+skill_level = 20  # Adjust this value as needed
 
 snap="chess_board_snap.jpg"
 extracted_board="extracted_chessboard.jpg"
@@ -99,6 +100,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
     # with chess.engine.SimpleEngine.popen_uci(engine_path) as engine:
     engine = chess.engine.SimpleEngine.popen_uci(engine_path)
+    engine.configure({"Skill Level": skill_level})
     print("Welcome to Chess! Enter your moves in UCI notation (e.g., e2e4). Type 'quit' to exit.")
 
     move_arm_to_position(base, home_x, home_y, home_z) # home pose before taking the snap of the chess board

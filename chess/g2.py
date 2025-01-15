@@ -10,6 +10,11 @@ def main():
     # Use the Stockfish engine for AI moves (make sure it's installed and available on your system)
     engine_path = "/usr/games/stockfish"  # Replace with the actual path to Stockfish
     with chess.engine.SimpleEngine.popen_uci(engine_path) as engine:
+        print(engine.options)
+        skill_level = 10  # Adjust this value as needed
+        engine.configure({"Skill Level": skill_level})
+        # engine.configure({"UCI_LimitStrength": True, "UCI_Elo": 1500})
+
         print("Welcome to Chess! Enter your moves in UCI notation (e.g., e2e4). Type 'quit' to exit.")
 
         while not board.is_game_over():
