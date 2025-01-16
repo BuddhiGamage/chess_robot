@@ -78,7 +78,7 @@ def check_black_positions(prev_board, new_board):
     for i in range(len(prev_board)):
         for j in range(len(prev_board[i])):
             # Check if both lists have numbers > 6 in the same position
-            if (prev_board[i][j] > 5):
+            if (prev_board[i][j] > 5) or (new_board[i][j] > 5 ):
                 if prev_board[i][j] != new_board[i][j]:
                     return False
     return True
@@ -326,7 +326,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         cv2.imwrite(extracted_board, img_board)
         current_board,count=chessboard_to_matrix(extracted_board)
         print(current_board)
-        while count!=piece_count:
+        while count!=piece_count and count!=piece_count-1:
             print(piece_count)
             capture_image_from_realsense(snap) # taking the snap
             img_board=extract_chessboard(snap)
@@ -344,7 +344,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             img_board=extract_chessboard(snap)
             cv2.imwrite(extracted_board, img_board)
             current_board,count=chessboard_to_matrix(extracted_board)
-            while count!=piece_count:
+            while count!=piece_count and count!=piece_count-1:
                 print(piece_count)
                 capture_image_from_realsense(snap) # taking the snap
                 img_board=extract_chessboard(snap)
