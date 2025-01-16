@@ -19,8 +19,8 @@ def detect_white_king_castling(initial_board, final_board):
             return (7,4),(7,6),False
         elif final_board[7][2] == 4:  # King moved to c1
             return (7,4),(7,2),False
-    else:
-        return None,None,False
+        else:
+            return None,None,False
     return None,None,True
 
 def find_chess_move(initial_board, final_board,castling_availability):

@@ -105,8 +105,6 @@ def board_to_matrix(board):
     
     return matrix
 
-
-
 # Create connection to the device and get the router
 with utilities.DeviceConnection.createTcpConnection(args) as router:
     base = BaseClient(router)
@@ -251,6 +249,19 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             move_arm_to_position(base,bucket_coordinates_x,bucket_coordinates_y)
             time.sleep(2)
             place_chess_piece(base,target_z=0.1)  # Example place
+            # check arm did the move
+            capture_image_from_realsense(snap) # taking the snap
+            img_board=extract_chessboard(snap)
+            cv2.imwrite(extracted_board, img_board)
+            _,count=chessboard_to_matrix(extracted_board)
+            while count!=piece_count:
+                if(count-1==piece_count):
+                    print(f"please help me to capture the piece: {captured_square}")
+                print(piece_count)
+                capture_image_from_realsense(snap) # taking the snap
+                img_board=extract_chessboard(snap)
+                cv2.imwrite(extracted_board, img_board)
+                current_board,count=chessboard_to_matrix(extracted_board)
 
 
         # Perform the AI's move    
@@ -326,7 +337,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         print("Arm movement state: "+str(arm_move_state))
         # quit()
         while (arm_move_state==False):
-            print("Can you please fix my move")
+            print(f"Can you please fix my move to: {ai_move}")
             time.sleep(2)
             # check arm did the move
             capture_image_from_realsense(snap) # taking the snap
@@ -340,6 +351,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
                 cv2.imwrite(extracted_board, img_board)
                 current_board,count=chessboard_to_matrix(extracted_board)
             arm_move_state = check_black_positions(prev_board,current_board)
+
 
 # Display the game result
 print("Game over!")
