@@ -20,7 +20,8 @@ from chess_board_extract import extract_chessboard
 from rf2 import chessboard_to_matrix
 from return_move import find_chess_move
 
-skill_level = 20  # Adjust this value as needed
+# skill_level = 20  # Adjust this value as needed
+skill_level = 12  # Adjust this value as needed
 
 snap="chess_board_snap.jpg"
 extracted_board="extracted_chessboard.jpg"
@@ -202,35 +203,6 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         
         # ai_move = black_kingside
 
-        # Check if the move is kingside or queenside castling
-        if board.is_castling(ai_move):
-            
-            if board.is_kingside_castling(ai_move):
-                # Rook's move: h8 -> f8
-                rook_source_pos = 'h8'
-                rook_target_pos = 'f8'
-            elif board.is_queenside_castling(ai_move):
-                # Rook's move: a8 -> d8
-                rook_source_pos = 'a8'
-                rook_target_pos = 'd8'
-            
-            # Perform the AI's move    
-            move_arm_to_chess_pos2(base,'e4')
-
-            time.sleep(1)
-            _,_,target_z = get_real_world_coordinates(rook_source_pos)
-            print(target_z)
-            move_arm_to_chess_pos2(base,rook_source_pos)
-            time.sleep(1)
-            pick_chess_piece(base,target_z)  # pick
-
-            move_arm_to_chess_pos2(base,'e4')
-            
-            time.sleep(1)
-            move_arm_to_chess_pos2(base,rook_target_pos)
-            time.sleep(1)
-            place_chess_piece(base,target_z)  # place
-
             
         # Determine the source and target squares of the move
         source_square = ai_move.from_square  # Starting square index (0-63)
@@ -287,6 +259,35 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         time.sleep(1)
         place_chess_piece(base,target_z)  # Example place
 
+        # Check if the move is kingside or queenside castling
+        if board.is_castling(ai_move):
+            
+            if board.is_kingside_castling(ai_move):
+                # Rook's move: h8 -> f8
+                rook_source_pos = 'h8'
+                rook_target_pos = 'f8'
+            elif board.is_queenside_castling(ai_move):
+                # Rook's move: a8 -> d8
+                rook_source_pos = 'a8'
+                rook_target_pos = 'd8'
+            
+            # Perform the AI's move    
+            move_arm_to_chess_pos2(base,'e4')
+
+            time.sleep(1)
+            _,_,target_z = get_real_world_coordinates(rook_source_pos)
+            print(target_z)
+            move_arm_to_chess_pos2(base,rook_source_pos)
+            time.sleep(1)
+            pick_chess_piece(base,target_z)  # pick
+
+            move_arm_to_chess_pos2(base,'e4')
+            
+            time.sleep(1)
+            move_arm_to_chess_pos2(base,rook_target_pos)
+            time.sleep(1)
+            place_chess_piece(base,target_z)  # place
+            
         move_arm_to_position(base, home_x, home_y, home_z) # home pose before taking the snap of the chess board
         time.sleep(3)
 
