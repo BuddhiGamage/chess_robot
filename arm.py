@@ -94,7 +94,7 @@ def move_arm_to_chess_pos2(base,chessboard_pos,z=0.1):
     move_to_cartesian_position(base, real_x, real_y,z)
     # return  real_z  
 
-# move_arm_to_chess_pos1('e4',z=0.1)
+# move_arm_to_chess_pos1('a8',z=0.005)
 
  # Parse arguments
 # args = utilities.parseConnectionArguments()

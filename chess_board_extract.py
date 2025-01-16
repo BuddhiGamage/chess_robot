@@ -151,14 +151,14 @@ def remove_border_and_resize(image_path, border_width=40, output_size=(800, 800)
         return None
     
 # Usage
-image_path = "/home/buddhi/Projects/chess_robot/output_image.png"  # Replace with your image path
-try:
-    chessboard = extract_chessboard(image_path)
-    # cv2.imshow("Extracted Chessboard", chessboard)
-    # cv2.waitKey(0)
-    cv2.destroyAllWindows()
+# image_path = "/home/buddhi/Projects/chess_robot/output_image.png"  # Replace with your image path
+# try:
+#     chessboard = extract_chessboard(image_path)
+#     # cv2.imshow("Extracted Chessboard", chessboard)
+#     # cv2.waitKey(0)
+#     cv2.destroyAllWindows()
 
-    # Optionally save the extracted chessboard
-    cv2.imwrite("extracted_chessboard.jpg", chessboard)
-except ValueError as e:
-    print("Error:", e)
+#     # Optionally save the extracted chessboard
+#     cv2.imwrite("extracted_chessboard.jpg", chessboard)
+# except ValueError as e:
+#     print("Error:", e)

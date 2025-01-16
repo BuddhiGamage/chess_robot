@@ -1,3 +1,6 @@
 __pycache__
 venv*
 .env
+chess_board_snap.jpg
+extracted_chessboard.jpg
+output_image.png
