@@ -190,7 +190,7 @@ def convert_to_fen(board):
     fen_notation = "/".join(fen_rows)
     return fen_notation
 
-# # Example usage
-image_path = '/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg'
-chessboard_matrix = chessboard_to_matrix(image_path)
-print(chessboard_matrix)
+# # # Example usage
+# image_path = '/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg'
+# chessboard_matrix = chessboard_to_matrix(image_path)
+# print(chessboard_matrix)
