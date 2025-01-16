@@ -152,12 +152,18 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
         print('castling availability: '+str(castling_availability))
 
+        human_move = chess.Move.from_uci(human_move)
         
+
         try:
             # Parse and apply the human player's move
-            move = chess.Move.from_uci(human_move)
-            if move in board.legal_moves:
-                board.push(move)
+            
+            if human_move in board.legal_moves:
+                if board.is_capture(human_move):
+                    piece_count-=1
+                    print('capture move by human')
+                    # quit()
+                board.push(human_move)
             else:
                 print("Illegal move. Try again.")
                 continue
@@ -165,16 +171,17 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             print("Invalid UCI format. Try again.")
             continue
         
-        capture_move = chess.Move.from_uci(str(human_move))  # check capturing 
-        if board.is_capture(capture_move): 
-            piece_count-=1
-            print('capture move by human')
+        # print(board)
+        # if board.is_capture(human_move):
+        #     piece_count-=1
+        #     print('capture move by human')
+        #     quit() 
         # if(is_capture):
         #     piece_count-=1
         #     print(is_capture)
             # print('quit in if')
             # quit()
-        print(human_move)
+        # print(human_move)
 
         # Check if the game is over after the human move
         if board.is_game_over():
