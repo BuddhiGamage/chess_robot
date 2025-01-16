@@ -296,8 +296,24 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         # Convert the board to a matrix
         prev_board = board_to_matrix(board)
 
+        # check arm did the move
+        while count!=piece_count:
+            print(piece_count)
+            capture_image_from_realsense(snap) # taking the snap
+            img_board=extract_chessboard(snap)
+            cv2.imwrite(extracted_board, img_board)
+            updated_board,_=chessboard_to_matrix(extracted_board)
         
-        
+        while updated_board != prev_board:
+            print("Can you please fix my move")
+            time.sleep(2)
+            # check arm did the move
+            while count!=piece_count:
+                print(piece_count)
+                capture_image_from_realsense(snap) # taking the snap
+                img_board=extract_chessboard(snap)
+                cv2.imwrite(extracted_board, img_board)
+                updated_board,_=chessboard_to_matrix(extracted_board)
 
 # Display the game result
 print("Game over!")
