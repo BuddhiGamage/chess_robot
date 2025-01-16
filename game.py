@@ -112,7 +112,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         print(board)
 
         # oppent will play as white and do the first move and press n.
-        user_input = input("Press enter after move")
+        # user_input = input("Press enter after move")
 
         # move_arm_to_chess_pos2(base,'e4')
         # time.sleep(1)
@@ -134,9 +134,15 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             cv2.imwrite(extracted_board, img_board)
             current_board,count=chessboard_to_matrix(extracted_board)
 
+
         # Get the human player's move
         print(prev_board)
         print(current_board)
+        # Check if they are the same
+        if prev_board == current_board:
+            print("Player's turn")
+            continue
+
         human_move,castling_availability=find_chess_move(prev_board,current_board,castling_availability)
         
         if human_move==None:
