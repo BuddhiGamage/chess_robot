@@ -22,6 +22,7 @@ def detect_white_king_castling(initial_board, final_board):
     else:
         return None,None,False
     return None,None,True
+
 def find_chess_move(initial_board, final_board,castling_availability):
     # Convert the board positions into chess notation (0-indexed to chess coordinates)
     
@@ -36,21 +37,23 @@ def find_chess_move(initial_board, final_board,castling_availability):
     
     for i in range(8):
         for j in range(8):
-            if initial_board[i][j] != final_board[i][j]:
-                if final_board[i][j] != -1 and initial_board[i][j]==-1:  # Updated position
-                    end_pos = (i, j)
-                elif final_board[i][j] != -1 and initial_board[i][j]!=-1:
-                    # capture=True
-                    end_pos = (i, j)
+            if (initial_board[i][j] < 6 ):
+                if initial_board[i][j] != final_board[i][j] :
+                    if final_board[i][j] != -1 and initial_board[i][j]==-1:  # Updated position
+                        end_pos = (i, j)
+                    elif final_board[i][j] != -1 and initial_board[i][j]!=-1:
+                        # capture=True
+                        end_pos = (i, j)
 
     if end_pos==None:
         return None,castling_availability
 
     for i in range(8):
         for j in range(8):
-            if initial_board[i][j] != final_board[i][j]:
-                if final_board[i][j] == -1 and final_board[end_pos[0]][end_pos[1]]==initial_board[i][j]:  # Updated position
-                    start_pos = (i, j)
+            if (initial_board[i][j] < 6 ):
+                if initial_board[i][j] != final_board[i][j] :
+                    if final_board[i][j] == -1 and final_board[end_pos[0]][end_pos[1]]==initial_board[i][j]:  # Updated position
+                        start_pos = (i, j)
 
 
     # Convert to chess notation
@@ -61,8 +64,6 @@ def find_chess_move(initial_board, final_board,castling_availability):
         return start_square + end_square,castling_availability
     else:
         return None,castling_availability
-    # else:
-    #     return None
     
 
 # # Example matrices

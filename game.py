@@ -70,6 +70,18 @@ prev_board = [
 # Use the Stockfish engine for AI moves (make sure it's installed and available on your system)
 engine_path = "/usr/games/stockfish"  # Replace with the actual path to Stockfish
 
+#  compare the two lists and check if all numbers greater than 5(which means black positions) are in the same positions in both lists
+def check_black_positions(prev_board, new_board):
+    print(prev_board)
+    print(new_board)
+    # Iterate through each row and column
+    for i in range(len(prev_board)):
+        for j in range(len(prev_board[i])):
+            # Check if both lists have numbers > 6 in the same position
+            if (prev_board[i][j] > 5):
+                if prev_board[i][j] != new_board[i][j]:
+                    return False
+    return True
 
 def board_to_matrix(board):
     # Map pieces to numeric values
@@ -298,23 +310,36 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         prev_board = board_to_matrix(board)
 
         # check arm did the move
+        capture_image_from_realsense(snap) # taking the snap
+        img_board=extract_chessboard(snap)
+        cv2.imwrite(extracted_board, img_board)
+        current_board,count=chessboard_to_matrix(extracted_board)
+        print(current_board)
         while count!=piece_count:
             print(piece_count)
             capture_image_from_realsense(snap) # taking the snap
             img_board=extract_chessboard(snap)
             cv2.imwrite(extracted_board, img_board)
-            updated_board,_=chessboard_to_matrix(extracted_board)
+            current_board,count=chessboard_to_matrix(extracted_board)
         
-        while updated_board != prev_board:
+        arm_move_state=check_black_positions(prev_board,current_board)
+        print("Arm movement state: "+str(arm_move_state))
+        # quit()
+        while (arm_move_state==False):
             print("Can you please fix my move")
             time.sleep(2)
             # check arm did the move
+            capture_image_from_realsense(snap) # taking the snap
+            img_board=extract_chessboard(snap)
+            cv2.imwrite(extracted_board, img_board)
+            current_board,count=chessboard_to_matrix(extracted_board)
             while count!=piece_count:
                 print(piece_count)
                 capture_image_from_realsense(snap) # taking the snap
                 img_board=extract_chessboard(snap)
                 cv2.imwrite(extracted_board, img_board)
-                updated_board,_=chessboard_to_matrix(extracted_board)
+                current_board,count=chessboard_to_matrix(extracted_board)
+            arm_move_state = check_black_positions(prev_board,current_board)
 
 # Display the game result
 print("Game over!")
