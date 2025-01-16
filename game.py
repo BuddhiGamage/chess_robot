@@ -79,6 +79,9 @@ def check_black_positions(prev_board, new_board):
         for j in range(len(prev_board[i])):
             # Check if both lists have numbers > 6 in the same position
             if (prev_board[i][j] > 5) or (new_board[i][j] > 5 ):
+                # if human player replaced the piece with his piece then ignore checking
+                if(new_board[i][j]<6):
+                    continue
                 if prev_board[i][j] != new_board[i][j]:
                     return False
     return True

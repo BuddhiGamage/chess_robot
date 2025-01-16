@@ -78,7 +78,7 @@ def open_gripper(base):
         gripper_measure = base.GetMeasuredGripperMovement(gripper_request)
         if len (gripper_measure.finger):
             print("Current position is : {0}".format(gripper_measure.finger[0].value))
-            if gripper_measure.finger[0].value < 0.7:
+            if gripper_measure.finger[0].value < 0.68:
                 break
         else: # Else, no finger present in answer, end loop
             break
