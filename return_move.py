@@ -27,13 +27,12 @@ def find_chess_move(initial_board, final_board,castling_availability):
     
     start_pos = None
     end_pos = None
-    capture=False
     if (castling_availability):
         start_pos,end_pos,castling_availability=detect_white_king_castling(initial_board,final_board)
         if(start_pos != None):
             start_square = to_chess_notation(start_pos[0], start_pos[1])
             end_square = to_chess_notation(end_pos[0], end_pos[1])
-            return start_square+end_square,capture,castling_availability
+            return start_square+end_square,castling_availability
     
     for i in range(8):
         for j in range(8):
@@ -41,11 +40,11 @@ def find_chess_move(initial_board, final_board,castling_availability):
                 if final_board[i][j] != -1 and initial_board[i][j]==-1:  # Updated position
                     end_pos = (i, j)
                 elif final_board[i][j] != -1 and initial_board[i][j]!=-1:
-                    capture=True
+                    # capture=True
                     end_pos = (i, j)
 
     if end_pos==None:
-        return None,False,castling_availability
+        return None,castling_availability
 
     for i in range(8):
         for j in range(8):
@@ -59,9 +58,9 @@ def find_chess_move(initial_board, final_board,castling_availability):
         start_square = to_chess_notation(start_pos[0], start_pos[1])
         end_square = to_chess_notation(end_pos[0], end_pos[1])
         print(start_square+end_square)
-        return start_square + end_square,capture,castling_availability
+        return start_square + end_square,castling_availability
     else:
-        return None,False,castling_availability
+        return None,castling_availability
     # else:
     #     return None
     

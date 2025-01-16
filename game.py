@@ -137,7 +137,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         # Get the human player's move
         print(prev_board)
         print(current_board)
-        human_move,is_capture,castling_availability=find_chess_move(prev_board,current_board,castling_availability)
+        human_move,castling_availability=find_chess_move(prev_board,current_board,castling_availability)
         
         if human_move==None:
             print("Move did not Capture. Try again")
@@ -159,9 +159,13 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             print("Invalid UCI format. Try again.")
             continue
         
-        if(is_capture):
+        capture_move = chess.Move.from_uci(str(human_move))  # check capturing 
+        if board.is_capture(capture_move): 
             piece_count-=1
-            print(is_capture)
+            print('capture move by human')
+        # if(is_capture):
+        #     piece_count-=1
+        #     print(is_capture)
             # print('quit in if')
             # quit()
         print(human_move)
