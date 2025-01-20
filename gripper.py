@@ -81,21 +81,21 @@ class GripperCommandExample:
             else: # Else, no finger present in answer, end loop
                 break
 
-def main():
-    # Import the utilities helper module
-    import argparse
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    import utilities
+# def main():
+#     # Import the utilities helper module
+#     import argparse
+#     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+#     import utilities
 
-    # Parse arguments
-    parser = argparse.ArgumentParser()
-    args = utilities.parseConnectionArguments(parser)
+#     # Parse arguments
+#     parser = argparse.ArgumentParser()
+#     args = utilities.parseConnectionArguments(parser)
 
-    # Create connection to the device and get the router
-    with utilities.DeviceConnection.createTcpConnection(args) as router:
+#     # Create connection to the device and get the router
+#     with utilities.DeviceConnection.createTcpConnection(args) as router:
 
-        example = GripperCommandExample(router)
-        example.ExampleSendGripperCommands()
+#         example = GripperCommandExample(router)
+#         example.ExampleSendGripperCommands()
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

@@ -96,7 +96,7 @@ def move_arm_to_chess_pos2(base,chessboard_pos,z=0.1):
 
 # move_arm_to_chess_pos1('a8',z=0.005)
 
- # Parse arguments
+# Parse arguments
 # args = utilities.parseConnectionArguments()
 
 # with utilities.DeviceConnection.createTcpConnection(args) as router:

@@ -1,11 +1,10 @@
-import sys
-import os
+
 import time
 
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.messages import Base_pb2
 from move_to_x_y import move_to_cartesian_position
-from arm import move_arm_to_chess_pos2
+from arm import move_arm_to_chess_pos2, get_real_world_coordinates
 
 
 
@@ -78,30 +77,36 @@ def open_gripper(base):
         gripper_measure = base.GetMeasuredGripperMovement(gripper_request)
         if len (gripper_measure.finger):
             print("Current position is : {0}".format(gripper_measure.finger[0].value))
-            if gripper_measure.finger[0].value < 0.68:
+            if gripper_measure.finger[0].value < 0.69:
                 break
         else: # Else, no finger present in answer, end loop
             break
 
 
-# def main():
-#     # Import the utilities helper module
-#     import argparse
-#     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-#     import utilities
+def main():
+    # Import the utilities helper module
+    import argparse
+    # sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    import utilities
 
-#     # Parse arguments
-#     parser = argparse.ArgumentParser()
-#     args = utilities.parseConnectionArguments(parser)
+    # Parse arguments
+    parser = argparse.ArgumentParser()
+    args = utilities.parseConnectionArguments(parser)
 
-#     # Create connection to the device and get the router
-#     with utilities.DeviceConnection.createTcpConnection(args) as router:
-#         example = Gripper(router)
-#         move_arm_to_chess_pos2(example.base,"d4")
-#         example.pick_chess_piece(target_z=0.049)  # Example pick
-#         time.sleep(2)
-#         move_arm_to_chess_pos2(example.base,"d8")
-#         example.place_chess_piece(target_z=0.049)  # Example place
+    # Create connection to the device and get the router
+    with utilities.DeviceConnection.createTcpConnection(args) as router:
+        square="e1"
+        base = BaseClient(router)
+        close_gripper(base)
+        move_arm_to_chess_pos2(base,'e4')
+        move_arm_to_chess_pos2(base,square)
+        
+        # open_gripper(base)
+        _,_,target_z = get_real_world_coordinates(square)
+        pick_chess_piece(base,target_z)  # Example pick
+        time.sleep(2)
+        move_arm_to_chess_pos2(base,square)
+        place_chess_piece(base,target_z)  # Example place
 
 
 # if __name__ == "__main__":

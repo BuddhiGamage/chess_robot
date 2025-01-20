@@ -99,6 +99,6 @@ def chessboard_to_matrix(image_path):
     return matrix
 
 # Example usage
-image_path = '/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg'
-chessboard_matrix = chessboard_to_matrix(image_path)
-print(chessboard_matrix)
+# image_path = '/home/buddhi/Projects/chess_robot/extracted_chessboard.jpg'
+# chessboard_matrix = chessboard_to_matrix(image_path)
+# print(chessboard_matrix)

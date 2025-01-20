@@ -21,10 +21,16 @@ from rf2 import chessboard_to_matrix
 from return_move import find_chess_move
 
 # skill_level = 20  # Adjust this value as needed
-skill_level = 5  # Adjust this value as needed
-UCI_Elo = 1500
+# skill_level = 5  # Adjust this value as needed
+# UCI_Elo = 1500
 
-
+# Get user input for skill level and UCI_Elo
+try:
+    skill_level = int(input("Enter Skill Level (default is 20): ") or 20)
+except ValueError:
+    print("Invalid input. Using default values.")
+    skill_level = 20
+    
 snap="chess_board_snap.jpg"
 extracted_board="extracted_chessboard.jpg"
 extracted_board_with_no_border="extracted_chessboard_no_border.jpg"
@@ -116,7 +122,10 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
     # with chess.engine.SimpleEngine.popen_uci(engine_path) as engine:
     engine = chess.engine.SimpleEngine.popen_uci(engine_path)
-    engine.configure({"Skill Level": skill_level, "UCI_LimitStrength": True, "UCI_Elo": UCI_Elo})
+    # Configure the engine with the user inputs or defaults
+    engine.configure({
+        "Skill Level": skill_level
+    })
     print("Welcome to Chess! Enter your moves in UCI notation (e.g., e2e4). Type 'quit' to exit.")
 
     move_arm_to_position(base, home_x, home_y, home_z) # home pose before taking the snap of the chess board
