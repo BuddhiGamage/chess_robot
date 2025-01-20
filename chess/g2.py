@@ -12,7 +12,8 @@ def main():
     with chess.engine.SimpleEngine.popen_uci(engine_path) as engine:
         print(engine.options)
         skill_level = 10  # Adjust this value as needed
-        engine.configure({"Skill Level": skill_level})
+        # engine.configure({"Skill Level": skill_level})
+        engine.configure({"Skill Level": skill_level, "UCI_LimitStrength": True, "UCI_Elo": 1500})
         # engine.configure({"UCI_LimitStrength": True, "UCI_Elo": 1500})
 
         print("Welcome to Chess! Enter your moves in UCI notation (e.g., e2e4). Type 'quit' to exit.")
