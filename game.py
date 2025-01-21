@@ -20,6 +20,7 @@ from chess_board_extract import extract_chessboard
 from rf2 import chessboard_to_matrix
 from return_move import find_chess_move
 
+base_square = "e6"
 # skill_level = 20  # Adjust this value as needed
 # skill_level = 5  # Adjust this value as needed
 # UCI_Elo = 1500
@@ -139,7 +140,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         # oppent will play as white and do the first move and press n.
         # user_input = input("Press enter after move")
 
-        # move_arm_to_chess_pos2(base,'e4')
+        # move_arm_to_chess_pos2(base,base_square)
         # time.sleep(1)
 
         # generate fen from the image
@@ -251,7 +252,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             print(f"The AI move captures a piece on {captured_square}.")
 
             # Move the arm to the captured piece's position (captured_square)
-            move_arm_to_chess_pos2(base,'e4')
+            move_arm_to_chess_pos2(base,base_square)
             # move_arm_to_position(base, home_x, home_y, home_z) # home pose
             time.sleep(1)
             _,_,target_z = get_real_world_coordinates(captured_square)
@@ -280,7 +281,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
 
         # Perform the AI's move    
-        move_arm_to_chess_pos2(base,'e4')
+        move_arm_to_chess_pos2(base,base_square)
 
         # move_arm_to_position(base, home_x, home_y, home_z) # home pose before taking the snap of the chess board
         time.sleep(1)
@@ -290,7 +291,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         time.sleep(1)
         pick_chess_piece(base,target_z)  # Example pick
 
-        move_arm_to_chess_pos2(base,'e4')
+        move_arm_to_chess_pos2(base,base_square)
         # move_arm_to_position(base, home_x, home_y, home_z) # home pose before taking the snap of the chess board
         time.sleep(1)
         move_arm_to_chess_pos2(base,target_pos)
@@ -310,7 +311,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
                 rook_target_pos = 'd8'
             
             # Perform the AI's move    
-            move_arm_to_chess_pos2(base,'e4')
+            move_arm_to_chess_pos2(base,base_square)
 
             time.sleep(1)
             _,_,target_z = get_real_world_coordinates(rook_source_pos)
@@ -319,7 +320,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             time.sleep(1)
             pick_chess_piece(base,target_z)  # pick
 
-            move_arm_to_chess_pos2(base,'e4')
+            move_arm_to_chess_pos2(base,base_square)
             
             time.sleep(1)
             move_arm_to_chess_pos2(base,rook_target_pos)
