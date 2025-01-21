@@ -14,6 +14,7 @@ def pick_chess_piece(base, target_z):
     current_x, current_y, current_z = current_pose.x, current_pose.y, current_pose.z
     
     open_gripper(base)
+    time.sleep(1)
     
     print(f"Moving to target z-coordinate {target_z} while keeping x and y fixed...")
     # move_arm_to_chess_pos2(base,chessboard_pos,target_z)

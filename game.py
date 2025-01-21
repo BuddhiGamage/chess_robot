@@ -226,6 +226,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         # black_queenside = chess.Move.from_uci("e8c8")  # Black queenside castling
         
         # ai_move = black_kingside
+        # ai_move = chess.Move.from_uci("g8h6")
 
             
         # Determine the source and target squares of the move
