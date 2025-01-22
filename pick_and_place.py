@@ -78,7 +78,7 @@ def open_gripper(base):
         gripper_measure = base.GetMeasuredGripperMovement(gripper_request)
         if len (gripper_measure.finger):
             print("Current position is : {0}".format(gripper_measure.finger[0].value))
-            if gripper_measure.finger[0].value < 0.69:
+            if gripper_measure.finger[0].value < 0.75:
                 break
         else: # Else, no finger present in answer, end loop
             break
@@ -96,10 +96,10 @@ def main():
 
     # Create connection to the device and get the router
     with utilities.DeviceConnection.createTcpConnection(args) as router:
-        square="e1"
+        square="e8"
         base = BaseClient(router)
         close_gripper(base)
-        move_arm_to_chess_pos2(base,'e4')
+        move_arm_to_chess_pos2(base,'e6')
         move_arm_to_chess_pos2(base,square)
         
         # open_gripper(base)

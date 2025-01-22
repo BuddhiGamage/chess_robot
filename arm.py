@@ -7,12 +7,20 @@ import cv2
 from move import example_move_to_home_position
 import time
 
-# Real-world coordinates of the reference positions
+# Real-world coordinates of the reference positions for old pieces
+# real_world_coords = np.array([
+#     [0.489, -0.188, 0.03],  # A1
+#     [0.175, -0.171, 0.025],  # A8
+#     [0.503, 0.133,  0.03],  # H1
+#     [0.183, 0.143,  0.025], # H8
+# ])
+
+# Real-world coordinates of the reference positions for old pieces
 real_world_coords = np.array([
-    [0.489, -0.188, 0.03],  # A1
-    [0.175, -0.171, 0.025],  # A8
-    [0.503, 0.133,  0.03],  # H1
-    [0.183, 0.143,  0.025], # H8
+    [0.489, -0.188, 0.05],  # A1
+    [0.175, -0.171, 0.043],  # A8
+    [0.503, 0.133,  0.05],  # H1
+    [0.183, 0.143,  0.043], # H8
 ])
 
 # Logical positions on the chessboard (column, row)
@@ -66,7 +74,7 @@ def get_real_world_coordinates(chess_position):
     return float(real_x), float(real_y), float(real_z)  # x, y, z in real-world coordinates
 
 # Function to move the Kinova arm
-def move_arm_to_chess_pos1(chessboard_pos,z=0.1):
+def move_arm_to_chess_pos1(chessboard_pos,z=0.12):
     """Move the Kinova arm to the given chessboard position (e.g., 'e4')."""
 
     # Convert the grid index to real-world coordinates
@@ -84,7 +92,7 @@ def move_arm_to_chess_pos1(chessboard_pos,z=0.1):
         move_to_cartesian_position(base, real_x, real_y,z)
 
 # Function to move the Kinova arm
-def move_arm_to_chess_pos2(base,chessboard_pos,z=0.1):
+def move_arm_to_chess_pos2(base,chessboard_pos,z=0.12):
     """Move the Kinova arm to the given chessboard position (e.g., 'e4')."""
 
     # Convert the grid index to real-world coordinates
@@ -94,7 +102,7 @@ def move_arm_to_chess_pos2(base,chessboard_pos,z=0.1):
     move_to_cartesian_position(base, real_x, real_y,z)
     # return  real_z  
 
-# move_arm_to_chess_pos1('a8',z=0.005)
+# move_arm_to_chess_pos1('a8',z=0.12)
 
 # Parse arguments
 # args = utilities.parseConnectionArguments()
@@ -103,5 +111,5 @@ def move_arm_to_chess_pos2(base,chessboard_pos,z=0.1):
 #         # Create required services
 #         base = BaseClient(router)
 #         move_arm_to_chess_pos2(base,'e4')
-#         move_arm_to_chess_pos2(base,'e8',z=0.1)
+#         move_arm_to_chess_pos2(base,'e8',z=0.12)
 #         move_arm_to_chess_pos2(base,'e8',z=0.022)

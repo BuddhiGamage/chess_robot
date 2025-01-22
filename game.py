@@ -264,7 +264,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             # bucket_coordinates = 'h1'  # Example bucket position (change as needed)
             move_arm_to_position(base,bucket_coordinates_x,bucket_coordinates_y)
             time.sleep(2)
-            place_chess_piece(base,target_z=0.1)  # Example place
+            place_chess_piece(base,target_z=0.12)  # Example place
             # check arm did the move
             capture_image_from_realsense(snap) # taking the snap
             img_board=extract_chessboard(snap)
