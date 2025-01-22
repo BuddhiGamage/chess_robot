@@ -17,7 +17,7 @@ def check_for_end_or_abort(e):
             e.set()
     return check
 
-def move_to_cartesian_position(base, x, y,z=0.15):
+def move_to_cartesian_position(base, x, y,z=0.12):
     """
     Move the arm to a given Cartesian position with fixed values for other pose parameters.
     
