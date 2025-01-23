@@ -14,7 +14,7 @@ def pick_chess_piece(base, target_z):
     current_x, current_y, current_z = current_pose.x, current_pose.y, current_pose.z
     
     open_gripper(base)
-    time.sleep(1)
+    # time.sleep(1)
     
     print(f"Moving to target z-coordinate {target_z} while keeping x and y fixed...")
     # move_arm_to_chess_pos2(base,chessboard_pos,target_z)
@@ -44,7 +44,7 @@ def place_chess_piece(base, target_z):
     # Open the gripper to release the piece
     print("Opening gripper to release the chess piece...")
     open_gripper(base)
-
+    # time.sleep(1)
     # Return to the original z-coordinate
     print("Returning to original z-coordinate...")
     # move_arm_to_chess_pos2(base,chessboard_pos,current_z)
@@ -78,7 +78,7 @@ def open_gripper(base):
         gripper_measure = base.GetMeasuredGripperMovement(gripper_request)
         if len (gripper_measure.finger):
             print("Current position is : {0}".format(gripper_measure.finger[0].value))
-            if gripper_measure.finger[0].value < 0.75:
+            if gripper_measure.finger[0].value < 0.68:
                 break
         else: # Else, no finger present in answer, end loop
             break
@@ -96,7 +96,7 @@ def main():
 
     # Create connection to the device and get the router
     with utilities.DeviceConnection.createTcpConnection(args) as router:
-        square="e8"
+        square="a8"
         base = BaseClient(router)
         close_gripper(base)
         move_arm_to_chess_pos2(base,'e6')
@@ -110,5 +110,5 @@ def main():
         place_chess_piece(base,target_z)  # Example place
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

@@ -28,6 +28,7 @@ base_square = "e6"
 # Get user input for skill level and UCI_Elo
 try:
     skill_level = int(input("Enter Skill Level (default is 20): ") or 20)
+    print(skill_level)
 except ValueError:
     print("Invalid input. Using default values.")
     skill_level = 20
@@ -178,18 +179,38 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
         print('castling availability: '+str(castling_availability))
 
-        human_move = chess.Move.from_uci(human_move)
+        human_move_prueba = chess.Move.from_uci(human_move)
         
 
         try:
             # Parse and apply the human player's move
             
-            if human_move in board.legal_moves:
-                if board.is_capture(human_move):
+            if human_move_prueba in board.legal_moves:
+                if board.is_capture(human_move_prueba):
                     piece_count-=1
                     print('capture move by human')
                     # quit()
-                board.push(human_move)
+                board.push(human_move_prueba)
+            elif chess.Move.from_uci(human_move + "q") in board.legal_moves:
+                # Loop until a valid promotion piece is provided
+                while True:
+                    promotion_piece = input("Pawn promotion! Choose a piece (q, r, b, n): ").lower()
+                    if promotion_piece in ["q", "r", "b", "n"]:
+                        break  # Valid input
+                    else:
+                        print("Invalid input. Please choose q (queen), r (rook), b (bishop), or n (knight).")                
+                human_move += promotion_piece
+                human_move_prueba = chess.Move.from_uci(human_move)
+                if human_move_prueba in board.legal_moves:
+                    if board.is_capture(human_move_prueba):
+                        piece_count-=1
+                        print('capture move by human')
+                        # quit()
+                    print("Pawn is promoted to: "+promotion_piece)
+                    board.push(human_move_prueba)
+                else:
+                    print("Illegal move. Try again.")
+                    continue
             else:
                 print("Illegal move. Try again.")
                 continue
@@ -215,7 +236,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
         # Let the AI make its move
         print("AI is thinking...")
-        result = engine.play(board, chess.engine.Limit(time=1.0))  # AI moves with a 1-second time limit
+        result = engine.play(board, chess.engine.Limit(time=0.1))  # AI moves with a 0.1-second time limit
         
         # Extract the move details
         ai_move = result.move
@@ -252,19 +273,19 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             print(f"The AI move captures a piece on {captured_square}.")
 
             # Move the arm to the captured piece's position (captured_square)
-            move_arm_to_chess_pos2(base,base_square)
+            # move_arm_to_chess_pos2(base,base_square)
             # move_arm_to_position(base, home_x, home_y, home_z) # home pose
-            time.sleep(1)
+            # time.sleep(1)
             _,_,target_z = get_real_world_coordinates(captured_square)
             move_arm_to_chess_pos2(base, captured_square)
-            time.sleep(1)
+            time.sleep(3)
             pick_chess_piece(base,target_z) 
 
             # Move the arm to the bucket (replace with actual bucket coordinates)
             # bucket_coordinates = 'h1'  # Example bucket position (change as needed)
             move_arm_to_position(base,bucket_coordinates_x,bucket_coordinates_y)
-            time.sleep(2)
-            place_chess_piece(base,target_z=0.12)  # Example place
+            time.sleep(3)
+            place_chess_piece(base,target_z=0.14)  # Example place
             # check arm did the move
             capture_image_from_realsense(snap) # taking the snap
             img_board=extract_chessboard(snap)
@@ -281,21 +302,21 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
 
         # Perform the AI's move    
-        move_arm_to_chess_pos2(base,base_square)
+        # move_arm_to_chess_pos2(base,base_square)
 
         # move_arm_to_position(base, home_x, home_y, home_z) # home pose before taking the snap of the chess board
-        time.sleep(1)
+        # time.sleep(1)
         _,_,target_z = get_real_world_coordinates(source_pos)
         print(target_z)
         move_arm_to_chess_pos2(base,source_pos)
-        time.sleep(1)
+        time.sleep(3)
         pick_chess_piece(base,target_z)  # Example pick
 
-        move_arm_to_chess_pos2(base,base_square)
+        # move_arm_to_chess_pos2(base,base_square)
         # move_arm_to_position(base, home_x, home_y, home_z) # home pose before taking the snap of the chess board
-        time.sleep(1)
+        # time.sleep(1)
         move_arm_to_chess_pos2(base,target_pos)
-        time.sleep(1)
+        time.sleep(3)
         place_chess_piece(base,target_z)  # Example place
 
         # Check if the move is kingside or queenside castling
@@ -311,20 +332,20 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
                 rook_target_pos = 'd8'
             
             # Perform the AI's move    
-            move_arm_to_chess_pos2(base,base_square)
+            # move_arm_to_chess_pos2(base,base_square)
+            # time.sleep(1)
 
-            time.sleep(1)
             _,_,target_z = get_real_world_coordinates(rook_source_pos)
             print(target_z)
             move_arm_to_chess_pos2(base,rook_source_pos)
-            time.sleep(1)
+            time.sleep(3)
             pick_chess_piece(base,target_z)  # pick
 
-            move_arm_to_chess_pos2(base,base_square)
-            
-            time.sleep(1)
+            # move_arm_to_chess_pos2(base,base_square)            
+            # time.sleep(1)
+
             move_arm_to_chess_pos2(base,rook_target_pos)
-            time.sleep(1)
+            time.sleep(3)
             place_chess_piece(base,target_z)  # place
             
         move_arm_to_position(base, home_x, home_y, home_z) # home pose before taking the snap of the chess board
