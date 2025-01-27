@@ -20,6 +20,8 @@ from chess_board_extract import extract_chessboard
 from rf2 import chessboard_to_matrix
 from return_move import find_chess_move
 
+import csv
+
 base_square = "e6"
 # skill_level = 20  # Adjust this value as needed
 # skill_level = 5  # Adjust this value as needed
@@ -80,6 +82,34 @@ prev_board = [
 # Use the Stockfish engine for AI moves (make sure it's installed and available on your system)
 engine_path = "/usr/games/stockfish"  # Replace with the actual path to Stockfish
 
+
+
+# File paths for FEN and moves
+fen_file_path = "current_fen.txt"
+moves_csv_path = "moves.csv"
+
+# Initialize the FEN file and moves CSV file at the start of the game
+def initialize_files():
+    # Clear and initialize the FEN file
+    with open(fen_file_path, "w") as fen_file:
+        fen_file.write("")
+
+    # Clear and initialize the CSV file with headers
+    with open(moves_csv_path, "w", newline="") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(["Turn", "Move Type", "Move"])
+
+# Update the FEN file with the current board state
+def update_fen_file(board):
+    with open(fen_file_path, "w") as fen_file:
+        fen_file.write(board.fen())
+
+# Append a move to the CSV file
+def log_move(turn, move_type, move):
+    with open(moves_csv_path, "a", newline="") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow([turn, move_type, move.uci()])
+
 #  compare the two lists and check if all numbers greater than 5(which means black positions) are in the same positions in both lists
 def check_black_positions(prev_board, new_board):
     print(prev_board)
@@ -117,6 +147,12 @@ def board_to_matrix(board):
     matrix.reverse()
     
     return matrix
+
+# Call this function at the beginning of the game
+initialize_files()
+
+# Modify your game loop as follows:
+turn = 1  # Track the turn number
 
 # Create connection to the device and get the router
 with utilities.DeviceConnection.createTcpConnection(args) as router:
@@ -191,6 +227,9 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
                     print('capture move by human')
                     # quit()
                 board.push(human_move_prueba)
+                log_move(turn, "Human", human_move_prueba)  # Log the human move
+                update_fen_file(board)  # Update the FEN file
+                turn += 1
             elif chess.Move.from_uci(human_move + "q") in board.legal_moves:
                 # Loop until a valid promotion piece is provided
                 while True:
@@ -208,6 +247,9 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
                         # quit()
                     print("Pawn is promoted to: "+promotion_piece)
                     board.push(human_move_prueba)
+                    log_move(turn, "Human", human_move_prueba)  # Log the human move
+                    update_fen_file(board)  # Update the FEN file
+                    turn += 1
                 else:
                     print("Illegal move. Try again.")
                     continue
@@ -353,6 +395,9 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
 
         # Push the move on the board to update the state
         board.push(ai_move)
+        log_move(turn, "AI", ai_move)  # Log the AI move
+        update_fen_file(board)  # Update the FEN file
+        turn += 1
 
         # Convert the board to a matrix
         prev_board = board_to_matrix(board)

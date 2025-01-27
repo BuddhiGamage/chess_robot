@@ -9,3 +9,6 @@ pytesseract
 matplotlib
 python-chess
 ollama
+gtts
+SpeechRecognition
+pyaudio
