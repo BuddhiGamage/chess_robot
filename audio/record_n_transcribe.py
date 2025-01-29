@@ -9,6 +9,7 @@ import chess.engine
 import csv
 from gtts import gTTS
 import sys
+import re
 
 # caution: path[0] is reserved for script path (or '' in REPL)
 sys.path.insert(1, '/home/buddhi/Projects/chess_robot/CoSMIC/src')
@@ -66,6 +67,16 @@ class recorder:
         self.moves_csv_path = "/home/buddhi/Projects/chess_robot/moves.csv"
         self.cosmic_config_path = '/home/buddhi/Projects/cosmic/CoSMIC/scripts/configs/config.yaml'
         self.opensi_cosmic = OpenSICoSMIC(config_path=self.cosmic_config_path)
+        self.system_prompt = f'''
+            You are an AI chess-playing robot created at tge University of Canberra with Collaborative Robotics Lab and OpenSI.
+            You have eyes to identify the chess board and a physical arm to make moves.
+            You are playing as black.
+            A Human player is playing as white.
+            Respond appropriately to the human question based on the game context, information above and the question.
+            Respond briefly in one sentence.
+        '''
+        self.history=""
+        self.messages = [{"role": "system", "content": self.system_prompt}]
     
     # Function to load the current FEN from the file
     def read_fen(self):
@@ -126,52 +137,25 @@ class recorder:
     # Mock function to generate LLM response (replace with actual implementation)
     def generate_llm_response(self, prompt: str) -> str:
         """Send a prompt to the LLM using Ollama and get a response."""
-        board = chess.Board()
 
-        # Read the current FEN and game history
-        fen = self.read_fen()
-        game_history = self.read_game_history()
-        next_best_move= self.get_next_best_move(fen)
-        _, next_play = self.get_next_turn(game_history)
+        self.messages.append({ "role": "user", "content": prompt})
 
-        # Update the board state if the FEN is valid
-        if fen:
-            try:
-                board.set_fen(fen)
-            except ValueError:
-                print("Invalid FEN. Skipping update.")
-
-        print(board.fen())
-        print(game_history)
-        print(next_play)
-        print("Next best move: "+next_best_move)
-
-        system_prompt = f'''
-            You are an AI chess-playing robot.
-            You have eyes to identify the chess board and a physical arm to make moves.
-            You are playing as black.
-            A Human player is playing as white.
-            Current chessboard configuration (FEN): {board.fen()}
-            Game History: {game_history}.
-            Who will play next: {next_play}.
-            Predicted next best move for {next_play} player: {next_best_move}.
-        '''
 
         response = client.chat.completions.create(model="gpt-4o",
         temperature=0.5,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ])
+        messages=self.messages,
+        )
         return response.choices[0].message.content
     
     def get_cosmic_response(self, promt):
         
-        # Read the current FEN and game history
-        fen = self.read_fen()
-        eng = f". Always give short answers as a normal talking in one sentence. Current FEN : {fen}"
-        # Run for each question/query, return the truncated response if applicable.
-        answer, _, _ = self.opensi_cosmic(promt+eng)
+        # # Read the current FEN and game history
+        # fen = self.read_fen()
+        # eng = f". Always give short answers as a normal talking in one sentence. Current FEN : {fen}"
+        # # Run for each question/query, return the truncated response if applicable.
+        # answer, _, _ = self.opensi_cosmic(promt+eng)
+        self.history=self.history+" "+promt
+        answer, _, _ = self.opensi_cosmic(self.system_prompt+self.history)
         return answer
 
 
@@ -218,17 +202,51 @@ class recorder:
             transcription = self.transcribe_audio(self.filename)
             print("Transcription:", transcription)
 
+            board = chess.Board()
+
+            # Read the current FEN and game history
+            fen = self.read_fen()
+            game_history = self.read_game_history()
+            next_best_move= self.get_next_best_move(fen)
+            _, next_play = self.get_next_turn(game_history)
+
+            # Update the board state if the FEN is valid
+            if fen:
+                try:
+                    board.set_fen(fen)
+                except ValueError:
+                    print("Invalid FEN. Skipping update.")
+
+            print(board.fen())
+            print(game_history)
+            print(next_play)
+            print("Next best move: "+next_best_move)
+            
             prompt = f"""
-            Respond appropriately to the human question based on the game context, information above and the question.
-            Respond briefly in one sentence.
+            Current chessboard configuration (FEN): {board.fen()}
+            Game History: {game_history}.
+            Who will play next: {next_play}.
+            Predicted next best move for {next_play} player: {next_best_move}.
             Human question: {transcription}.
             """
-            # response = self.generate_llm_response(prompt)
-            response = self.get_cosmic_response(prompt)
+            prompt_cosmic = f"""
+            Game History: {game_history}.
+            Human question: {transcription}. 
+            Current FEN : {fen}"""
+            # response = self.generate_llm_response(prompt) # chatgpt 4o
+            
+            # CoSMIC implementation
+            response = self.get_cosmic_response(prompt_cosmic)
+            if "is one of" in response:
+                moves = response.split("is one of ")
+                response = re.sub(r'\[.*?\]', 'current FEN', moves[0])+' is one of '+moves[1]
 
             # Display and speak the response
             print(f"AI: {response}")
-            self.convert_to_speech(response)
+            try:
+                self.convert_to_speech(response)
+            except AssertionError:
+                print('Nothing from LLM')
 
     def transcribe_audio(self, audio_file):
         """
