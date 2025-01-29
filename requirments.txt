@@ -12,3 +12,6 @@ ollama
 gtts
 SpeechRecognition
 pyaudio
+openai
+python-dotenv
+pynput

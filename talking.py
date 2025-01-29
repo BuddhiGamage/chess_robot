@@ -1,12 +1,21 @@
 import time
 import threading
-import chess
 import csv
 from ollama import chat, ChatResponse
 import os
 import speech_recognition as sr
 from gtts import gTTS
-import playsound
+import chess
+import chess.engine
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+client = OpenAI()  # For ChatGPT-4o
+
 
 # File paths for FEN and moves
 fen_file_path = "current_fen.txt"
@@ -47,13 +56,53 @@ def convert_to_speech(text):
         # playsound("response.mp3")  # Play the audio file
 
 # Mock function to generate LLM response (replace with actual implementation)
-def generate_llm_response(prompt: str) -> str:
+def generate_llm_response(prompt: str, use_chatgpt=False) -> str:
     """Send a prompt to the LLM using Ollama and get a response."""
-    # response: ChatResponse = chat(model="phi3", messages=[
-    response: ChatResponse = chat(model="mistral", messages=[
-        {"role": "user", "content": prompt}
-    ])
-    return response.message.content  # Return the LLM's response
+    board = chess.Board()
+
+    # Read the current FEN and game history
+    fen = read_fen()
+    game_history = read_game_history()
+    next_best_move=get_next_best_move(fen)
+    _, next_play = get_next_turn(game_history)
+
+    # Update the board state if the FEN is valid
+    if fen:
+        try:
+            board.set_fen(fen)
+        except ValueError:
+            print("Invalid FEN. Skipping update.")
+
+    print(board.fen())
+    print(game_history)
+    print(next_play)
+    print("Next best move: "+next_best_move)
+
+    system_prompt = f'''
+        You are an AI chess-playing robot.
+        You have eyes to identify the chess board and a physical arm to make moves.
+        You are playing as black.
+        A Human player is playing as white.
+        Current chessboard configuration (FEN): {board.fen()}
+        Game History: {game_history}.
+        Who will play next: {next_play}.
+        Predicted next best move for {next_play} player: {next_best_move}.
+    '''
+
+    if use_chatgpt:
+        response = client.chat.completions.create(model="gpt-4o",
+        temperature=0.5,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ])
+        return response.choices[0].message.content
+    else:
+        response: ChatResponse = chat(model="mistral", messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ])
+        return response.message.content
 
 
 # Function to load the current FEN from the file
@@ -77,40 +126,59 @@ def read_game_history():
         pass
     return game_history
 
+def get_next_best_move(fen: str, stockfish_path: str = "/usr/games/stockfish") -> str:
+    """
+    Get the next best move in a chess game using the Stockfish engine.
+    
+    Args:
+        fen (str): The FEN (Forsyth-Edwards Notation) string representing the current board state.
+        stockfish_path (str): Path to the Stockfish engine binary.
+        
+    Returns:
+        str: The best move in standard algebraic notation (e.g., "e2e4").
+    """
+    try:
+        # Initialize the chess engine
+        with chess.engine.SimpleEngine.popen_uci(stockfish_path) as engine:
+            # Create a board from the FEN string
+            board = chess.Board(fen)
+
+            # Analyze the position and get the best move
+            result = engine.play(board, chess.engine.Limit(time=0.1))  # Limit analysis time to 1 second
+
+            return result.move.uci()
+    except Exception as e:
+        return f"Error: {e}"
+
+def get_next_turn(moves):
+    """Determines the next turn number and the player who needs to play."""
+    if not moves:
+        return 1, 'Human'  # Default starting move
+
+    next_turn = len(moves) + 1
+    last_player = moves[-1]['type']
+    next_player = 'Human' if last_player == 'AI' else 'AI'
+
+    return next_turn, next_player
+
 # Main loop to interact with the robot
-def talk_with_robot():
-    board = chess.Board()
-
+def talk_with_robot(use_chatgpt=False):
     while True:
-        # Read the current FEN and game history
-        fen = read_fen()
-        game_history = read_game_history()
-
-        # Update the board state if the FEN is valid
-        if fen:
-            try:
-                board.set_fen(fen)
-            except ValueError:
-                print("Invalid FEN. Skipping update.")
 
         # Prompt the user for a question
-        # user_input = input("Human: ")
-        user_input = listen_to_user()
+        user_input = input("Human: ")
+        # user_input = listen_to_user()
         print("Human: "+ user_input)
-        
+
         # Generate LLM response for the question
         with lock:
-            print(board.fen())
-            print(game_history)
+
             prompt = f"""
-            You are a chess-playing robot.
-            Current chessboard configuration (FEN): {board.fen()}
-            Game History: {game_history}
-            Human question: {user_input}
-            Respond appropriately based on the game context and the question.
-            Respond briefly in one or two sentences
+            Respond appropriately to the human question based on the game context, information above and the question.
+            Respond briefly in one sentence.
+            Human question: {user_input}.
             """
-            response = generate_llm_response(prompt)
+            response = generate_llm_response(prompt,use_chatgpt)
 
         # Display and speak the response
         print(f"AI: {response}")
@@ -121,4 +189,5 @@ def talk_with_robot():
 
 # Start the program
 if __name__ == "__main__":
-    talk_with_robot()
+    use_chatgpt = True
+    talk_with_robot(use_chatgpt)
