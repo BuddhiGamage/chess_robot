@@ -8,6 +8,12 @@ import chess
 import chess.engine
 import csv
 from gtts import gTTS
+import sys
+
+# caution: path[0] is reserved for script path (or '' in REPL)
+sys.path.insert(1, '/home/buddhi/Projects/chess_robot/CoSMIC/src')
+
+from opensi_cosmic import OpenSICoSMIC
 
 # Load environment variables from .env file
 load_dotenv("/home/buddhi/Projects/chess_robot/.env")
@@ -56,8 +62,10 @@ class recorder:
         self.recording = False
         self.pa = pyaudio.PyAudio()
         # File paths for FEN and moves
-        self.fen_file_path = "current_fen.txt"
-        self.moves_csv_path = "moves.csv"
+        self.fen_file_path = "/home/buddhi/Projects/chess_robot/current_fen.txt"
+        self.moves_csv_path = "/home/buddhi/Projects/chess_robot/moves.csv"
+        self.cosmic_config_path = '/home/buddhi/Projects/cosmic/CoSMIC/scripts/configs/config.yaml'
+        self.opensi_cosmic = OpenSICoSMIC(config_path=self.cosmic_config_path)
     
     # Function to load the current FEN from the file
     def read_fen(self):
@@ -116,7 +124,7 @@ class recorder:
         return next_turn, next_player
 
     # Mock function to generate LLM response (replace with actual implementation)
-    def generate_llm_response(self, prompt: str, use_chatgpt=False) -> str:
+    def generate_llm_response(self, prompt: str) -> str:
         """Send a prompt to the LLM using Ollama and get a response."""
         board = chess.Board()
 
@@ -157,6 +165,16 @@ class recorder:
         ])
         return response.choices[0].message.content
     
+    def get_cosmic_response(self, promt):
+        
+        # Read the current FEN and game history
+        fen = self.read_fen()
+        eng = f". Always give short answers as a normal talking in one sentence. Current FEN : {fen}"
+        # Run for each question/query, return the truncated response if applicable.
+        answer, _, _ = self.opensi_cosmic(promt+eng)
+        return answer
+
+
     # Function to convert text to speech using gTTS
     def convert_to_speech(self, text):
         if text:
@@ -205,7 +223,8 @@ class recorder:
             Respond briefly in one sentence.
             Human question: {transcription}.
             """
-            response = self.generate_llm_response(prompt)
+            # response = self.generate_llm_response(prompt)
+            response = self.get_cosmic_response(prompt)
 
             # Display and speak the response
             print(f"AI: {response}")
