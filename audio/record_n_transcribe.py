@@ -10,6 +10,9 @@ import csv
 from gtts import gTTS
 import sys
 import re
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import random
 
 # caution: path[0] is reserved for script path (or '' in REPL)
 sys.path.insert(1, '/home/buddhi/Projects/chess_robot/CoSMIC/src')
@@ -18,9 +21,12 @@ from opensi_cosmic import OpenSICoSMIC
 
 # Load environment variables from .env file
 load_dotenv("/home/buddhi/Projects/chess_robot/.env")
+FEN_FILE_PATH = "/home/buddhi/Projects/chess_robot/current_fen.txt"
+moves_csv_path = "/home/buddhi/Projects/chess_robot/moves.csv"
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 
 class listener(keyboard.Listener):
     def __init__(self, recorder):
@@ -63,10 +69,10 @@ class recorder:
         self.recording = False
         self.pa = pyaudio.PyAudio()
         # File paths for FEN and moves
-        self.fen_file_path = "/home/buddhi/Projects/chess_robot/current_fen.txt"
-        self.moves_csv_path = "/home/buddhi/Projects/chess_robot/moves.csv"
-        self.cosmic_config_path = '/home/buddhi/Projects/cosmic/CoSMIC/scripts/configs/config.yaml'
-        self.opensi_cosmic = OpenSICoSMIC(config_path=self.cosmic_config_path)
+        self.fen_file_path = FEN_FILE_PATH
+        self.moves_csv_path = moves_csv_path
+        # self.cosmic_config_path = '/home/buddhi/Projects/cosmic/CoSMIC/scripts/configs/config.yaml'
+        # self.opensi_cosmic = OpenSICoSMIC(config_path=self.cosmic_config_path)
         self.system_prompt = f'''
             You are an AI chess-playing robot created at tge University of Canberra with Collaborative Robotics Lab and OpenSI.
             You have eyes to identify the chess board and a physical arm to make moves.
@@ -77,7 +83,50 @@ class recorder:
         '''
         self.history=""
         self.messages = [{"role": "system", "content": self.system_prompt}]
+        self.callback=print
+        observer = Observer()
+        self.old_fen=''
+
+        def on_modified(event):
+            self.handle_fen_update(event, self.callback)
+
+        event_handler = FileSystemEventHandler()
+        event_handler.on_modified = on_modified
+        observer.schedule(event_handler, path=os.path.dirname(FEN_FILE_PATH), recursive=False)
+        observer.start()
     
+    def handle_fen_update(self, event, callback):
+        """
+        Handles the event when the FEN file is modified.
+        Reads the new FEN and gets a response from LLM.
+        """
+        if event.src_path == FEN_FILE_PATH:
+            with open(FEN_FILE_PATH, "r") as file:
+                fen_data = file.read().strip()
+
+                if (fen_data!=self.old_fen):
+                    print(f"Detected FEN Update: {fen_data}")
+
+                    game_history = self.read_game_history()
+
+                    print(game_history)
+
+                    prompt=f"""
+                    Current chessboard configuration (FEN): {fen_data}
+                    Game History: {game_history}.
+                    Based on the last move from game history give a response.
+                    """
+                    
+                    if random.random() < 1:  # 20% probability
+                        response = self.generate_llm_response(prompt,role="intution")
+                        callback(response)
+
+                        try:
+                            self.convert_to_speech(response)
+                        except AssertionError:
+                            print('Nothing from LLM')
+                    self.old_fen=fen_data
+                    
     # Function to load the current FEN from the file
     def read_fen(self):
         try:
@@ -135,17 +184,21 @@ class recorder:
         return next_turn, next_player
 
     # Mock function to generate LLM response (replace with actual implementation)
-    def generate_llm_response(self, prompt: str) -> str:
+    def generate_llm_response(self, prompt: str,role="user") -> str:
         """Send a prompt to the LLM using Ollama and get a response."""
 
-        self.messages.append({ "role": "user", "content": prompt})
-
+        if(role=="user"):
+            self.messages.append({ "role": "user", "content": prompt})
+        elif(role=="intution"):
+            self.messages.append({ "role": "assistant", "content": "[Intution]: "+prompt})
 
         response = client.chat.completions.create(model="gpt-4o",
         temperature=0.5,
         messages=self.messages,
         )
-        return response.choices[0].message.content
+        response = response.choices[0].message.content
+        self.messages.append({ "role": "assistant", "content": "[Response]: "+response})
+        return response.split("[Response]:")[-1]
     
     def get_cosmic_response(self, promt):
         
@@ -233,13 +286,13 @@ class recorder:
             Game History: {game_history}.
             Human question: {transcription}. 
             Current FEN : {fen}"""
-            # response = self.generate_llm_response(prompt) # chatgpt 4o
+            response = self.generate_llm_response(prompt) # chatgpt 4o
             
             # CoSMIC implementation
-            response = self.get_cosmic_response(prompt_cosmic)
-            if "is one of" in response:
-                moves = response.split("is one of ")
-                response = re.sub(r'\[.*?\]', 'current FEN', moves[0])+' is one of '+moves[1]
+            # response = self.get_cosmic_response(prompt_cosmic)
+            # if "is one of" in response:
+            #     moves = response.split("is one of ")
+            #     response = re.sub(r'\[.*?\]', 'current FEN', moves[0])+' is one of '+moves[1]
 
             # Display and speak the response
             print(f"AI: {response}")
