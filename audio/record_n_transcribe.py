@@ -126,7 +126,7 @@ class recorder:
                         except AssertionError:
                             print('Nothing from LLM')
                     self.old_fen=fen_data
-                    
+
     # Function to load the current FEN from the file
     def read_fen(self):
         try:
@@ -146,7 +146,7 @@ class recorder:
                     game_history.append({"turn": row[0], "type": row[1], "move": row[2]})
         except FileNotFoundError:
             pass
-        return game_history
+        return game_history[-10:]
 
     def get_next_best_move(self, fen: str, stockfish_path: str = "/usr/games/stockfish") -> str:
         """
@@ -186,6 +186,10 @@ class recorder:
     # Mock function to generate LLM response (replace with actual implementation)
     def generate_llm_response(self, prompt: str,role="user") -> str:
         """Send a prompt to the LLM using Ollama and get a response."""
+
+         # Keep only the last 10 messages
+        self.messages = [self.messages[0]] + self.messages[-20:]
+        print(self.messages)
 
         if(role=="user"):
             self.messages.append({ "role": "user", "content": prompt})

@@ -1,5 +1,5 @@
 Turn,Move Type,Move
-1,Human,d2d4
+1,Human,a2a4
 2,AI,g8f6
 3,Human,b2b4
-4,AI,d7d5
+4,AI,a7a5
