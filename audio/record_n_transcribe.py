@@ -72,6 +72,7 @@ class recorder:
         self.pa = pyaudio.PyAudio()
         # File paths for FEN and moves
         self.fen_file_path = FEN_FILE_PATH
+        self.message_file_path = message_file_path
         self.moves_csv_path = moves_csv_path
         self.cosmic_config_path = '/home/buddhi/Projects/cosmic/CoSMIC/scripts/configs/config.yaml'
         self.opensi_cosmic = OpenSICoSMIC(config_path=self.cosmic_config_path)
@@ -87,6 +88,7 @@ class recorder:
         self.callback=print
         observer = Observer()
         self.old_fen=''
+        self.old_msg_data = ''  # Track old message content
         self.lock = threading.Lock()
 
         # Set up file system observers
@@ -99,7 +101,7 @@ class recorder:
 
         self.msg_handler = FileSystemEventHandler()
         self.msg_handler.on_modified = self.on_message_modified
-        observer.schedule(self.moves_handler, path=os.path.dirname(self.moves_csv_path), recursive=False)
+        observer.schedule(self.msg_handler, path=os.path.dirname(self.message_file_path), recursive=False)
 
         # def on_modified(event):
         #     self.handle_fen_update(event, self.callback)
@@ -151,28 +153,48 @@ class recorder:
                     self.old_fen=fen_data
 
     def handle_message_update(self, event, callback):
-        if event.src_path == message_file_path:
-            with open(message_file_path, "r") as file:
+        """
+        Handles the event when the message file is modified.
+        Reads the new message and generates an appropriate response.
+        """
+        if event.src_path == self.message_file_path:
+            with open(self.message_file_path, "r") as file:
                 msg_data = file.read().strip()
                 
-                game_history = self.read_game_history()
-                fen = self.read_fen()
+                if (msg_data==""):
+                    return
+                
+                # Process only if the message content has changed
+                if msg_data != self.old_msg_data:
+                    print(f"Detected Message Update: {msg_data}")
 
-                prompt=f"""
-                    Current chessboard configuration (FEN): {fen}
-                    Game History: {game_history}.
-                    message: {msg_data}.
-                    ask the message content from human player appropriately.
-                    """
-                response = self.generate_llm_response(prompt,role="intution")
-                callback(response)
+                    # Read game history and FEN for context
+                    game_history = self.read_game_history()
+                    fen = self.read_fen()
 
-                try:
-                    self.convert_to_speech(response)
-                except AssertionError:
-                    print('Nothing from LLM')
-                with self.lock:
-                    self.messages = self.summarize_messages()
+                    # Construct the prompt to ask LLM for an appropriate response
+                    # prompt = f"""
+                    #     Current chessboard configuration (FEN): {fen}
+                    #     Game History: {game_history}.
+                    #     message: {msg_data}.
+                    #     Ask the message content from the human player appropriately.
+                    # """
+
+                    # Generate LLM response
+                    response = self.generate_llm_response(msg_data, role="intution")
+                    callback(response)
+
+                    try:
+                        self.convert_to_speech(response)
+                    except AssertionError:
+                        print('Nothing from LLM')
+
+                    # Update messages and track the last processed message
+                    with self.lock:
+                        self.messages = self.summarize_messages()
+                    
+                    # Update old message content to avoid re-processing the same message
+                    self.old_msg_data = msg_data
 
     # Function to load the current FEN from the file
     def read_fen(self):

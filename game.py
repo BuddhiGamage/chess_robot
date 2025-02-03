@@ -118,6 +118,7 @@ def log_move(turn, move_type, move):
 
 # Update the FEN file with the current board state
 def update_msg_file(msg):
+    global msg_enable
     if msg_enable:
         with open(msg_file_path, "w") as msg_file:
             msg_file.write(msg)
@@ -220,6 +221,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             # msg="human_turn"
             # update_msg_file(msg)
             continue
+        update_msg_file("")
         msg_enable = True
 
         human_move,castling_availability=find_chess_move(prev_board,current_board,castling_availability)
@@ -229,6 +231,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             msg=f"Notify to the opponent that the last move was unable to recognize. ask the player to correct it"
             update_msg_file(msg)
             continue
+        update_msg_file("")
         msg_enable = True    
         
         print("human move: ", human_move)
@@ -272,17 +275,18 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
                     turn += 1
                 else:
                     print("Illegal move. Try again.")
-                    msg=f"Notify to the opponent that the last move:{human_move_prueba} is illegal."
+                    msg=f"Notify to the human player that the last move of the human player {human_move_prueba} is illegal."
                     update_msg_file(msg)
                     continue
             else:
                 print("Illegal move. Try again.")
-                msg=f"Notify to the opponent that the last move:{human_move_prueba} is illegal."
+                msg=f"Notify to the human player that the last move of the human player {human_move_prueba} is illegal."
                 update_msg_file(msg)
                 continue
         except ValueError:
             print("Invalid UCI format. Try again.")
             continue
+        update_msg_file("")
         msg_enable = True    
         
         # print(board)
@@ -361,13 +365,14 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             while count!=piece_count:
                 if(count-1==piece_count):
                     print(f"please help me to capture the piece: {captured_square}")
-                    msg=f"You tried to capture a piece at {captured_square} but you could not. ask help to capture the piece on({captured_square}) square from the human player."
+                    msg=f"You tried to capture a piece of human player at {captured_square}. But you could not. Ask help from human player to capture the piece on({captured_square}) square."
                     update_msg_file(msg)
                 print(piece_count)
                 capture_image_from_realsense(snap) # taking the snap
                 img_board=extract_chessboard(snap)
                 cv2.imwrite(extracted_board, img_board)
                 current_board,count=chessboard_to_matrix(extracted_board)
+            update_msg_file("")
             msg_enable = True
 
 
@@ -448,7 +453,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         # quit()
         while (arm_move_state==False):
             print(f"Can you please fix my move: {ai_move}")
-            msg=f"You tried to do a move: {ai_move} but you could not. ask help to fix the move from the human player."
+            msg=f"You tried to do a move: {ai_move} but you could not. Ask help from the human player to fix the move."
             update_msg_file(msg)
             time.sleep(2)
             # check arm did the move
@@ -463,6 +468,7 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
                 cv2.imwrite(extracted_board, img_board)
                 current_board,count=chessboard_to_matrix(extracted_board)
             arm_move_state = check_black_positions(prev_board,current_board)
+        update_msg_file("")
         msg_enable = True
 
 # Display the game result
@@ -471,3 +477,4 @@ print("Result:", board.result())
 time.sleep(5)
 msg=f"Game is over. say thank you to human player"
 update_msg_file(msg)
+

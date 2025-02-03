@@ -1,0 +1,1 @@
+you tried to capture a piece from human player which is at c2. but you could not. ask help from the human player to capture the piece on(c2) square.
