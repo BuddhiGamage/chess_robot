@@ -17,10 +17,10 @@ import time
 
 # Real-world coordinates of the reference positions for old pieces
 real_world_coords = np.array([
-    [0.481, -0.179, 0.05],  # A1
-    [0.166, -0.167, 0.047],  # A8
-    [0.494, 0.13,  0.05],  # H1
-    [0.176, 0.141,  0.047], # H8
+    [0.477, -0.179, 0.05],  # A1
+    [0.16, -0.171, 0.046],  # A8
+    [0.49, 0.134,  0.05],  # H1
+    [0.175, 0.142,  0.046], # H8
 ])
 
 # Logical positions on the chessboard (column, row)
@@ -102,7 +102,7 @@ def move_arm_to_chess_pos2(base,chessboard_pos,z=0.14):
     move_to_cartesian_position(base, real_x, real_y,z)
     # return  real_z  
 
-# move_arm_to_chess_pos1('a8',z=0.14)
+# move_arm_to_chess_pos1('a1',z=0.01)
 
 # Parse arguments
 # args = utilities.parseConnectionArguments()

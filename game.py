@@ -55,6 +55,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 board = chess.Board()
 piece_count=32
 castling_availability=True
+msg_enable=True
 
 prev_board = [
     [9, 7, 8, 10, 11, 8, 7, 9],
@@ -87,6 +88,7 @@ engine_path = "/usr/games/stockfish"  # Replace with the actual path to Stockfis
 # File paths for FEN and moves
 fen_file_path = "current_fen.txt"
 moves_csv_path = "moves.csv"
+msg_file_path = "message.txt"
 
 # Initialize the FEN file and moves CSV file at the start of the game
 def initialize_files():
@@ -99,6 +101,10 @@ def initialize_files():
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(["Turn", "Move Type", "Move"])
 
+    # Clear and initialize the messgae file
+    with open(msg_file_path, "w") as msg_file:
+        msg_file.write("")
+
 # Update the FEN file with the current board state
 def update_fen_file(board):
     with open(fen_file_path, "w") as fen_file:
@@ -109,6 +115,13 @@ def log_move(turn, move_type, move):
     with open(moves_csv_path, "a", newline="") as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow([turn, move_type, move.uci()])
+
+# Update the FEN file with the current board state
+def update_msg_file(msg):
+    if msg_enable:
+        with open(msg_file_path, "w") as msg_file:
+            msg_file.write(msg)
+    msg_enable = False
 
 #  compare the two lists and check if all numbers greater than 5(which means black positions) are in the same positions in both lists
 def check_black_positions(prev_board, new_board):
@@ -204,13 +217,20 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         # Check if they are the same
         if prev_board == current_board:
             print("Player's turn")
+            # msg="human_turn"
+            # update_msg_file(msg)
             continue
+        msg_enable = True
 
         human_move,castling_availability=find_chess_move(prev_board,current_board,castling_availability)
         
         if human_move==None:
             print("Move did not Capture. Try again")
+            msg=f"Notify to the opponent that the last move was unable to recognize. ask the player to correct it"
+            update_msg_file(msg)
             continue
+        msg_enable = True    
+        
         print("human move: ", human_move)
 
         print('castling availability: '+str(castling_availability))
@@ -252,13 +272,18 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
                     turn += 1
                 else:
                     print("Illegal move. Try again.")
+                    msg=f"Notify to the opponent that the last move:{human_move_prueba} is illegal."
+                    update_msg_file(msg)
                     continue
             else:
                 print("Illegal move. Try again.")
+                msg=f"Notify to the opponent that the last move:{human_move_prueba} is illegal."
+                update_msg_file(msg)
                 continue
         except ValueError:
             print("Invalid UCI format. Try again.")
             continue
+        msg_enable = True    
         
         # print(board)
         # if board.is_capture(human_move):
@@ -336,11 +361,14 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
             while count!=piece_count:
                 if(count-1==piece_count):
                     print(f"please help me to capture the piece: {captured_square}")
+                    msg=f"You tried to capture a piece at {captured_square} but you could not. ask help to capture the piece on({captured_square}) square from the human player."
+                    update_msg_file(msg)
                 print(piece_count)
                 capture_image_from_realsense(snap) # taking the snap
                 img_board=extract_chessboard(snap)
                 cv2.imwrite(extracted_board, img_board)
                 current_board,count=chessboard_to_matrix(extracted_board)
+            msg_enable = True
 
 
         # Perform the AI's move    
@@ -419,7 +447,9 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         print("Arm movement state: "+str(arm_move_state))
         # quit()
         while (arm_move_state==False):
-            print(f"Can you please fix my move to: {ai_move}")
+            print(f"Can you please fix my move: {ai_move}")
+            msg=f"You tried to do a move: {ai_move} but you could not. ask help to fix the move from the human player."
+            update_msg_file(msg)
             time.sleep(2)
             # check arm did the move
             capture_image_from_realsense(snap) # taking the snap
@@ -433,9 +463,11 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
                 cv2.imwrite(extracted_board, img_board)
                 current_board,count=chessboard_to_matrix(extracted_board)
             arm_move_state = check_black_positions(prev_board,current_board)
-
+        msg_enable = True
 
 # Display the game result
 print("Game over!")
 print("Result:", board.result())
-
+time.sleep(5)
+msg=f"Game is over. say thank you to human player"
+update_msg_file(msg)

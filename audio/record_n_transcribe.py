@@ -13,6 +13,7 @@ import re
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import random
+import threading
 
 # caution: path[0] is reserved for script path (or '' in REPL)
 sys.path.insert(1, '/home/buddhi/Projects/chess_robot/CoSMIC/src')
@@ -23,6 +24,7 @@ from opensi_cosmic import OpenSICoSMIC
 load_dotenv("/home/buddhi/Projects/chess_robot/.env")
 FEN_FILE_PATH = "/home/buddhi/Projects/chess_robot/current_fen.txt"
 moves_csv_path = "/home/buddhi/Projects/chess_robot/moves.csv"
+message_file_path = "/home/buddhi/Projects/chess_robot/message.txt"
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -71,30 +73,49 @@ class recorder:
         # File paths for FEN and moves
         self.fen_file_path = FEN_FILE_PATH
         self.moves_csv_path = moves_csv_path
-        # self.cosmic_config_path = '/home/buddhi/Projects/cosmic/CoSMIC/scripts/configs/config.yaml'
-        # self.opensi_cosmic = OpenSICoSMIC(config_path=self.cosmic_config_path)
+        self.cosmic_config_path = '/home/buddhi/Projects/cosmic/CoSMIC/scripts/configs/config.yaml'
+        self.opensi_cosmic = OpenSICoSMIC(config_path=self.cosmic_config_path)
         self.system_prompt = f'''
-            You are an AI chess-playing robot created at tge University of Canberra with Collaborative Robotics Lab and OpenSI.
+            You are an AI chess-playing robot created at the University of Canberra with Collaborative Robotics Lab and OpenSI.
             You have eyes to identify the chess board and a physical arm to make moves.
             You are playing as black.
             A Human player is playing as white.
             Respond appropriately to the human question based on the game context, information above and the question.
-            Respond briefly in one sentence.
+            Respond briefly in one or two sentences.
         '''
-        self.history=""
         self.messages = [{"role": "system", "content": self.system_prompt}]
         self.callback=print
         observer = Observer()
         self.old_fen=''
+        self.lock = threading.Lock()
 
-        def on_modified(event):
-            self.handle_fen_update(event, self.callback)
+        # Set up file system observers
+        observer = Observer()
 
-        event_handler = FileSystemEventHandler()
-        event_handler.on_modified = on_modified
-        observer.schedule(event_handler, path=os.path.dirname(FEN_FILE_PATH), recursive=False)
+        #  FEN file handler
+        self.fen_handler = FileSystemEventHandler()
+        self.fen_handler.on_modified = self.on_fen_modified
+        observer.schedule(self.fen_handler, path=os.path.dirname(self.fen_file_path), recursive=False)
+
+        self.msg_handler = FileSystemEventHandler()
+        self.msg_handler.on_modified = self.on_message_modified
+        observer.schedule(self.moves_handler, path=os.path.dirname(self.moves_csv_path), recursive=False)
+
+        # def on_modified(event):
+        #     self.handle_fen_update(event, self.callback)
+
+        # event_handler = FileSystemEventHandler()
+        # event_handler.on_modified = on_modified
+        # observer.schedule(event_handler, path=os.path.dirname(FEN_FILE_PATH), recursive=False)
+        
         observer.start()
     
+    def on_fen_modified(self, event):
+        self.handle_fen_update(event, self.callback)
+
+    def on_message_modified(self, event):
+        self.handle_message_update(event, self.callback)
+
     def handle_fen_update(self, event, callback):
         """
         Handles the event when the FEN file is modified.
@@ -125,7 +146,33 @@ class recorder:
                             self.convert_to_speech(response)
                         except AssertionError:
                             print('Nothing from LLM')
+                        with self.lock:
+                            self.messages = self.summarize_messages()
                     self.old_fen=fen_data
+
+    def handle_message_update(self, event, callback):
+        if event.src_path == message_file_path:
+            with open(message_file_path, "r") as file:
+                msg_data = file.read().strip()
+                
+                game_history = self.read_game_history()
+                fen = self.read_fen()
+
+                prompt=f"""
+                    Current chessboard configuration (FEN): {fen}
+                    Game History: {game_history}.
+                    message: {msg_data}.
+                    ask the message content from human player appropriately.
+                    """
+                response = self.generate_llm_response(prompt,role="intution")
+                callback(response)
+
+                try:
+                    self.convert_to_speech(response)
+                except AssertionError:
+                    print('Nothing from LLM')
+                with self.lock:
+                    self.messages = self.summarize_messages()
 
     # Function to load the current FEN from the file
     def read_fen(self):
@@ -183,36 +230,74 @@ class recorder:
 
         return next_turn, next_player
 
-    # Mock function to generate LLM response (replace with actual implementation)
-    def generate_llm_response(self, prompt: str,role="user") -> str:
-        """Send a prompt to the LLM using Ollama and get a response."""
+    def summarize_messages(self):
+        """Summarizes all but the last five messages to keep context compact."""
+        if len(self.messages) <= 6:  # If messages are already few, no need to summarize
+            return self.messages  # Keep all except system prompt
 
-         # Keep only the last 10 messages
-        self.messages = [self.messages[0]] + self.messages[-20:]
-        print(self.messages)
-
-        if(role=="user"):
-            self.messages.append({ "role": "user", "content": prompt})
-        elif(role=="intution"):
-            self.messages.append({ "role": "assistant", "content": "[Intution]: "+prompt})
-
-        response = client.chat.completions.create(model="gpt-4o",
-        temperature=0.5,
-        messages=self.messages,
-        )
-        response = response.choices[0].message.content
-        self.messages.append({ "role": "assistant", "content": "[Response]: "+response})
-        return response.split("[Response]:")[-1]
-    
-    def get_cosmic_response(self, promt):
+        system_prompt = self.messages[0]  # Retain system prompt
+        old_messages = self.messages[1:-5]  # Messages to summarize (excluding system prompt and last 5)
+        last_five = self.messages[-5:]  # Retain last 5 messages
         
-        # # Read the current FEN and game history
-        # fen = self.read_fen()
-        # eng = f". Always give short answers as a normal talking in one sentence. Current FEN : {fen}"
-        # # Run for each question/query, return the truncated response if applicable.
-        # answer, _, _ = self.opensi_cosmic(promt+eng)
-        self.history=self.history+" "+promt
-        answer, _, _ = self.opensi_cosmic(self.system_prompt+self.history)
+        # summary_prompt = "Summarize the following conversation briefly:\n" + "\n".join(
+        #     f"{msg['role']}: {msg['content']}" for msg in old_messages
+        # )
+
+        summary_prompt = f"Summarize the conversation below while retaining the essence of the system prompt:\n\n"
+        summary_prompt += f"System Prompt: {system_prompt['content']}\n\n"
+        summary_prompt += "\n".join(f"{msg['role']}: {msg['content']}" for msg in old_messages)
+
+        summary_prompt = [{"role": "assistant", "content": f"[Summary]: {summary_prompt}"}]
+        # Generate summary using LLM or a placeholder function
+        # summary_response = self.generate_summary(summary_prompt)
+        summary_response = client.chat.completions.create(model="gpt-4o",
+            temperature=0.5,
+            messages=summary_prompt,
+            )
+
+        summarized_message = {"role": "assistant", "content": f"[Summary]: {summary_response}"}
+        summary_response = summary_response.choices[0].message.content.split("[Response]:")
+        
+        return [system_prompt, summarized_message] + last_five  # Keep system prompt, summary, and last 5 messages
+
+    # Mock function to generate LLM response (replace with actual implementation)
+    def generate_llm_response(self, prompt: str,role="user",use_cosmic=False) -> str:
+        """Send a prompt to the LLM using gpt4o and get a response."""
+
+        with self.lock:
+            if(role=="user"):
+                self.messages.append({ "role": "user", "content": prompt})
+            elif(role=="intution"):
+                self.messages.append({ "role": "assistant", "content": "[Intution]: "+prompt})
+            
+            print(self.messages)
+
+
+            # response = client.chat.completions.create(model="gpt-4o",
+            # temperature=0.5,
+            # messages=self.messages,
+            # )
+            # response = response.choices[0].message.content.split("[Response]:")[-1]
+            if (use_cosmic):
+                # Construct a full query including message history
+                full_prompt = "\n".join([msg["content"] for msg in self.messages])
+                response = self.get_cosmic_response(full_prompt)
+            else:
+                response = self.get_gpt_response()
+            self.messages.append({ "role": "assistant", "content": "[Response]: "+response})
+            
+            return response
+    
+    def get_gpt_response(self):
+        response = client.chat.completions.create(model="gpt-4o",
+            temperature=0.5,
+            messages=self.messages,
+            )
+        response = response.choices[0].message.content.split("[Response]:")[-1]
+        return response
+    
+    def get_cosmic_response(self, prompt):
+        answer, _, _ = self.opensi_cosmic(prompt)
         return answer
 
 
@@ -286,17 +371,31 @@ class recorder:
             Predicted next best move for {next_play} player: {next_best_move}.
             Human question: {transcription}.
             """
+
+            # prompt_cosmic = f"""
+            # Game History: {game_history}.
+            # Who will play next: {next_play}.
+            # Human question: {transcription}.
+            # Base on current FEN : {fen}""" 
+            
             prompt_cosmic = f"""
             Game History: {game_history}.
-            Human question: {transcription}. 
-            Current FEN : {fen}"""
-            response = self.generate_llm_response(prompt) # chatgpt 4o
+            Answer Human question: {transcription}
+            Based on current FEN : {fen}""" 
+
+            # prompt_cosmic = \
+            #     f"Game History: {game_history}.\n" \
+            #     f"Who will play next: {next_play}.\n" \
+            #     f"Human question: {transcription}.\n" \
+            #     f"Current FEN: {fen}.\n"
+            
+            # response = self.generate_llm_response(prompt) # chatgpt 4o
             
             # CoSMIC implementation
-            # response = self.get_cosmic_response(prompt_cosmic)
-            # if "is one of" in response:
-            #     moves = response.split("is one of ")
-            #     response = re.sub(r'\[.*?\]', 'current FEN', moves[0])+' is one of '+moves[1]
+            response = self.generate_llm_response(prompt_cosmic,use_cosmic=True)
+            if "is one of" in response:
+                moves = response.split("is one of ")
+                response = re.sub(r'\[.*?\]', 'current FEN', moves[0])+' is one of '+moves[1]
 
             # Display and speak the response
             print(f"AI: {response}")
@@ -304,7 +403,10 @@ class recorder:
                 self.convert_to_speech(response)
             except AssertionError:
                 print('Nothing from LLM')
-
+            
+            with self.lock:
+                self.messages = self.summarize_messages()
+                # print(self.messages)
     def transcribe_audio(self, audio_file):
         """
         Sends the audio file to OpenAI's Whisper API for transcription.

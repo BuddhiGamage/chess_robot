@@ -96,10 +96,10 @@ def main():
 
     # Create connection to the device and get the router
     with utilities.DeviceConnection.createTcpConnection(args) as router:
-        square="a8"
+        square="e1"
         base = BaseClient(router)
         close_gripper(base)
-        move_arm_to_chess_pos2(base,'e6')
+        # move_arm_to_chess_pos2(base,'e6')
         move_arm_to_chess_pos2(base,square)
         
         # open_gripper(base)

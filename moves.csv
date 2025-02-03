@@ -1,5 +1,11 @@
 Turn,Move Type,Move
-1,Human,a2a4
-2,AI,g8f6
-3,Human,b2b4
-4,AI,a7a5
+1,Human,e2e4
+2,AI,e7e5
+3,Human,d1f3
+4,AI,c7c6
+5,Human,f1c4
+6,AI,d8e7
+7,Human,g1h3
+8,AI,h7h6
+9,Human,d2d3
+10,AI,g8f6
