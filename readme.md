@@ -1,3 +1,7 @@
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)]()  
+[![Stockfish](https://img.shields.io/badge/engine-Stockfish-brightgreen.svg)]()  
+[![Kinova](https://img.shields.io/badge/hardware-Kinova-black.svg)]()
+
 # Chess-Robot: A Dual-Process Embodied Testbed for Cognitive Evaluation
 
 A chess-playing robot that operationalizes **dual-process theory** for embodied AI:
@@ -185,13 +189,3 @@ See `move_kinova/` and motion scripts in root.
 
 ---
 
-
----
-
-# 🔖 Badges (optional)
-
-Add badges at the top once ready:
-
-[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)]()  
-[![Stockfish](https://img.shields.io/badge/engine-Stockfish-brightgreen.svg)]()  
-[![Kinova](https://img.shields.io/badge/hardware-Kinova-black.svg)]()
